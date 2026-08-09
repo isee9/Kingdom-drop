@@ -1,0 +1,33 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    # Anything that would ship a bug should fail the build, not whisper.
+    unused_import: error
+    unused_local_variable: error
+    dead_code: error
+    invalid_use_of_protected_member: error
+    missing_required_param: error
+    missing_return: error
+
+linter:
+  rules:
+    # --- enabled on top of flutter_lints -----------------------------------
+    always_declare_return_types: true
+    avoid_empty_else: true
+    avoid_slow_async_io: true
+    cancel_subscriptions: true
+    close_sinks: true
+    prefer_final_locals: true
+    prefer_single_quotes: true
+    require_trailing_commas: true
+    sort_child_properties_last: true
+    unawaited_futures: true
+    use_string_buffers: true
+
+    # --- deliberately off ---------------------------------------------------
+    # Services take a public named parameter and store it in a private field
+    # (`PlayerService({required StorageRepository storage}) : _storage = ...`).
+    # An initialising formal would force the parameter itself to be private,
+    # which callers outside the library cannot pass.
+    prefer_initializing_formals: false

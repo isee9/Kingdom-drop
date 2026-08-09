@@ -1,0 +1,55 @@
+name: kingdom_drop
+description: "Kingdom Drop — Build. Clear. Conquer. An original block puzzle game with kingdom-building progression."
+publish_to: 'none'
+
+# version: <marketing version>+<build number>
+# Bump the build number for every store upload.
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Game/FX layer. Used for the particle + celebration effects rendered over the
+  # puzzle board. The board itself is a CustomPainter so that Flutter's gesture
+  # system drives dragging directly (smoother and easier to hit-test than
+  # routing pointer events through a game loop).
+  flame: ^1.38.0
+
+  # Local persistence. All player progress lives here via StorageRepository.
+  shared_preferences: ^2.5.5
+
+  # Audio playback. Every call is guarded so the game runs fine with no assets.
+  audioplayers: ^6.8.1
+
+  # Version string on the Settings screen.
+  package_info_plus: ^10.2.1
+
+  cupertino_icons: ^1.0.8
+
+  # Used for @immutable on the engine's value types.
+  meta: ^1.17.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/audio/
+    - assets/images/
+
+  # FONT SLOT — see README "Replacing art".
+  # Drop a licensed display font into assets/fonts/ and uncomment this block,
+  # then set AppTextStyles.displayFontFamily to 'KingdomDisplay'.
+  # fonts:
+  #   - family: KingdomDisplay
+  #     fonts:
+  #       - asset: assets/fonts/KingdomDisplay-Bold.ttf
+  #         weight: 700
