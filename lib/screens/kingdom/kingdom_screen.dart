@@ -151,20 +151,33 @@ class _KingdomScreenState extends State<KingdomScreen> {
                           ),
                         ),
                         const SizedBox(height: AppSpacing.lg),
-                        Text(
-                          kingdom.name.toUpperCase(),
-                          style: AppTextStyles.headline.copyWith(
-                            letterSpacing: 1.5,
+                        // On its own the blurb and the progress caption sat
+                        // straight on the painted backdrop, where a sunlit
+                        // mountain behind a line of grey body copy is
+                        // unreadable. The panel gives them a ground.
+                        KdCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              StrokedText(
+                                kingdom.name.toUpperCase(),
+                                textAlign: TextAlign.left,
+                                style: AppTextStyles.headline.copyWith(
+                                  letterSpacing: 1.5,
+                                ),
+                                fillGradient: AppColors.goldGradient,
+                              ),
+                              const SizedBox(height: AppSpacing.xs),
+                              Text(kingdom.blurb, style: AppTextStyles.body),
+                              const SizedBox(height: AppSpacing.md),
+                              KdProgressBar(value: done / kingdom.upgradeCount),
+                              const SizedBox(height: AppSpacing.xs),
+                              Text(
+                                '$done of ${kingdom.upgradeCount} restored',
+                                style: AppTextStyles.caption,
+                              ),
+                            ],
                           ),
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(kingdom.blurb, style: AppTextStyles.body),
-                        const SizedBox(height: AppSpacing.md),
-                        KdProgressBar(value: done / kingdom.upgradeCount),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          '$done of ${kingdom.upgradeCount} restored',
-                          style: AppTextStyles.caption,
                         ),
                         const SizedBox(height: AppSpacing.xl),
 
