@@ -1,9 +1,9 @@
-// Generates the Android and iOS app icons from the in-code Kingdom Drop mark.
+// Generates the Android and iOS app icons at every size each platform asks for.
 //
-// The icon is not a hand-drawn asset — it is [KingdomLogoPainter] rendered to a
-// PNG at every size each platform asks for. That means the icon can never drift
-// from the logo used in the app, and re-skinning is a code change plus one
-// command:
+// The source is the painted badge at assets/art/branding/app_icon.png. If that
+// file is missing it falls back to [KingdomLogoPainter], the same crown-of-
+// blocks mark drawn in code, so the icons can always be regenerated from the
+// repository alone.
 //
 //     flutter run -d <device> -t tool/generate_icons.dart
 //
@@ -17,6 +17,16 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:kingdom_drop/widgets/kingdom_logo.dart';
+
+/// The painted badge the icons are cut from, relative to the project root.
+const String _sourceIcon = 'assets/art/branding/app_icon.png';
+
+/// How much of an adaptive foreground canvas the badge fills.
+///
+/// Android masks an adaptive icon down to a centred circle of about 61% of the
+/// canvas. The badge's crown spans roughly three quarters of the badge, so at
+/// 0.80 the crown lands just inside that circle and nothing important is cut.
+const double _safeZone = 0.80;
 
 /// Android mipmap buckets.
 const Map<String, int> _androidSizes = <String, int>{
@@ -68,10 +78,21 @@ class _IconGeneratorAppState extends State<_IconGeneratorApp> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _generate());
   }
 
+  /// The painted badge, decoded once. Null means fall back to the painter.
+  ui.Image? _source;
+
   Future<void> _generate() async {
     // Run from the project root so the relative paths below resolve.
     final Directory root = Directory.current;
     _say('Working directory: ${root.path}');
+
+    _source = await _loadSource('${root.path}/$_sourceIcon');
+    _say(
+      _source == null
+          ? 'No $_sourceIcon — drawing the icon from KingdomLogoPainter.'
+          : 'Using painted badge $_sourceIcon '
+                '(${_source!.width}x${_source!.height}).',
+    );
 
     for (final MapEntry<String, int> entry in _androidSizes.entries) {
       final String path =
@@ -141,17 +162,48 @@ class _IconGeneratorAppState extends State<_IconGeneratorApp> {
     }
   }
 
-  /// Rasterises the logo painter at [size] x [size].
+  /// Decodes the painted badge from disk, or returns null if it is not there.
+  Future<ui.Image?> _loadSource(String path) async {
+    try {
+      final File file = File(path);
+      if (!file.existsSync()) return null;
+      final ui.Codec codec = await ui.instantiateImageCodec(
+        await file.readAsBytes(),
+      );
+      return (await codec.getNextFrame()).image;
+    } catch (error) {
+      _say('Could not read $path — $error');
+      return null;
+    }
+  }
+
+  /// Rasterises the icon at [size] x [size].
   Future<ui.Image> _render(int size, {required bool foregroundOnly}) async {
     final ui.PictureRecorder recorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(recorder);
+    final double side = size.toDouble();
+    final ui.Image? art = _source;
 
-    KingdomLogoPainter(
-      withBackground: !foregroundOnly,
+    if (art != null) {
       // Android crops an adaptive foreground to a centred safe zone of roughly
-      // two thirds, so the mark has to sit well inside the canvas.
-      marginFraction: foregroundOnly ? 0.26 : null,
-    ).paint(canvas, Size(size.toDouble(), size.toDouble()));
+      // two thirds of the canvas. The badge's crown already spans about three
+      // quarters of its own width, so the badge is drawn at [_safeZone] and the
+      // adaptive background colour (values/colors.xml) covers the gap. Square
+      // icons are drawn full bleed — their dark rounded corners are exactly
+      // what the platform's own mask is there to clip.
+      final double inset = foregroundOnly ? side * (1 - _safeZone) / 2 : 0;
+      canvas.drawImageRect(
+        art,
+        Rect.fromLTWH(0, 0, art.width.toDouble(), art.height.toDouble()),
+        Rect.fromLTWH(inset, inset, side - inset * 2, side - inset * 2),
+        Paint()..filterQuality = FilterQuality.high,
+      );
+    } else {
+      KingdomLogoPainter(
+        withBackground: !foregroundOnly,
+        marginFraction: foregroundOnly ? 0.26 : null,
+      ).paint(canvas, Size(side, side));
+    }
 
     return recorder.endRecording().toImage(size, size);
   }

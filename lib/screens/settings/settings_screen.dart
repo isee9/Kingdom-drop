@@ -4,6 +4,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import '../../core/config/app_config.dart';
 import '../../economy/player_service.dart';
 import '../../services/service_locator.dart';
+import '../../theme/app_art.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
@@ -118,6 +119,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       ),
       extendBodyBehindAppBar: true,
       body: GameBackground(
+        scene: ArtScene.menu,
         child: SafeArea(
           child: PlayerBuilder(
             builder: (BuildContext context, PlayerService player) {

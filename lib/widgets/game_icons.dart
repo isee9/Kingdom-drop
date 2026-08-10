@@ -3,17 +3,51 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../models/booster.dart';
+import '../theme/app_art.dart';
 import '../theme/app_colors.dart';
 
-/// Original vector icons drawn in code.
+/// The game's icon set.
 ///
-/// Drawing the crown, coin and boosters rather than shipping images keeps the
-/// bundle small, makes them crisp at any density, and means there is no
-/// third-party artwork anywhere in the project.
+/// Each icon is the painted asset from `assets/art/icons/` with a code-drawn
+/// version behind it. The painted ones are what ship; the painters are the
+/// fallback for a build without the pack, and they are why the widget tests can
+/// render these without an asset bundle.
 ///
-/// They are deliberately chunky: thick dark outlines, a lit top and a shaded
+/// Both are deliberately chunky: thick dark outlines, a lit top and a shaded
 /// bottom. A thin line icon next to a chunky button looks borrowed from a
 /// settings screen, which is exactly the impression to avoid here.
+
+/// Draws a painted icon, falling back to a painter if the asset is missing.
+class _ArtIcon extends StatelessWidget {
+  const _ArtIcon({
+    required this.asset,
+    required this.size,
+    required this.fallback,
+  });
+
+  final String asset;
+  final double size;
+
+  /// Drawn when [asset] cannot be loaded. Built lazily — an icon that loads
+  /// never constructs its fallback.
+  final Widget Function() fallback;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Image.asset(
+        asset,
+        fit: BoxFit.contain,
+        // Icons are 144px painted and are drawn as small as 12, so this is
+        // always a downscale.
+        filterQuality: FilterQuality.medium,
+        errorBuilder: (BuildContext _, Object _, StackTrace? _) => fallback(),
+      ),
+    );
+  }
+}
 
 /// Shared helper: a dark outline behind a filled path.
 void _outlined(
@@ -34,21 +68,19 @@ void _outlined(
   canvas.drawPath(path, fill);
 }
 
-/// The game's crown mark: a chunky five-point crown with a gem band.
+/// Crowns: the currency that rebuilds the kingdom.
 class CrownIcon extends StatelessWidget {
-  const CrownIcon({this.size = 20, this.color, this.shadow = true, super.key});
+  const CrownIcon({this.size = 20, super.key});
 
   final double size;
-  final Color? color;
-  final bool shadow;
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: CustomPaint(
-        painter: _CrownPainter(color: color ?? AppColors.crown, shadow: shadow),
+    return _ArtIcon(
+      asset: AppArt.iconCrown,
+      size: size,
+      fallback: () => const CustomPaint(
+        painter: _CrownPainter(color: AppColors.crown, shadow: true),
       ),
     );
   }
@@ -136,7 +168,7 @@ class _CrownPainter extends CustomPainter {
       oldDelegate.color != color || oldDelegate.shadow != shadow;
 }
 
-/// A gold coin with a struck crown motif.
+/// Gold coins: the currency that buys boosters and continues.
 class CoinIcon extends StatelessWidget {
   const CoinIcon({this.size = 20, super.key});
 
@@ -144,10 +176,66 @@ class CoinIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: CustomPaint(painter: const _CoinPainter()),
+    return _ArtIcon(
+      asset: AppArt.iconCoins,
+      size: size,
+      fallback: () => const CustomPaint(painter: _CoinPainter()),
+    );
+  }
+}
+
+/// The XP gem, shown wherever a run's experience is reported.
+class XpIcon extends StatelessWidget {
+  const XpIcon({this.size = 20, super.key});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ArtIcon(
+      asset: AppArt.iconXp,
+      size: size,
+      fallback: () => Icon(
+        Icons.auto_awesome_rounded,
+        size: size,
+        color: AppColors.primaryLight,
+      ),
+    );
+  }
+}
+
+/// A treasure chest. [mystery] swaps in the closed, glowing variant used for
+/// rewards the player has not opened yet.
+class ChestIcon extends StatelessWidget {
+  const ChestIcon({this.size = 26, this.mystery = false, super.key});
+
+  final double size;
+  final bool mystery;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ArtIcon(
+      asset: mystery ? AppArt.iconMysteryChest : AppArt.iconChest,
+      size: size,
+      fallback: () =>
+          Icon(Icons.inventory_2_rounded, size: size, color: AppColors.gold),
+    );
+  }
+}
+
+/// The daily calendar, used on the daily reward and the daily challenge.
+class CalendarIcon extends StatelessWidget {
+  const CalendarIcon({this.size = 26, super.key});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return _ArtIcon(
+      asset: AppArt.iconCalendar,
+      size: size,
+      fallback: () =>
+          Icon(Icons.calendar_month_rounded, size: size, color: AppColors.gold),
     );
   }
 }
@@ -233,19 +321,26 @@ class _CoinPainter extends CustomPainter {
   bool shouldRepaint(_CoinPainter oldDelegate) => false;
 }
 
-/// Chunky painted booster icons.
+/// Chunky booster icons: hammer, bomb, shuffle and second chance.
 class BoosterIcon extends StatelessWidget {
   const BoosterIcon({required this.type, this.size = 28, super.key});
 
   final BoosterType type;
   final double size;
 
+  static String _asset(BoosterType type) => switch (type) {
+    BoosterType.hammer => AppArt.iconHammer,
+    BoosterType.bomb => AppArt.iconBomb,
+    BoosterType.shuffle => AppArt.iconShuffle,
+    BoosterType.secondChance => AppArt.iconSecondChance,
+  };
+
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: size,
-      height: size,
-      child: CustomPaint(painter: _BoosterPainter(type)),
+    return _ArtIcon(
+      asset: _asset(type),
+      size: size,
+      fallback: () => CustomPaint(painter: _BoosterPainter(type)),
     );
   }
 }
@@ -479,14 +574,9 @@ class _BoosterPainter extends CustomPainter {
   bool shouldRepaint(_BoosterPainter oldDelegate) => oldDelegate.type != type;
 }
 
-/// Kept for the few places that still want a Material glyph (menu rows).
-IconData boosterIcon(BoosterType type) => switch (type) {
-  BoosterType.hammer => Icons.gavel_rounded,
-  BoosterType.bomb => Icons.brightness_7_rounded,
-  BoosterType.shuffle => Icons.shuffle_rounded,
-  BoosterType.secondChance => Icons.favorite_rounded,
-};
-
+/// The accent each booster is tinted with: glow when armed, wash behind its
+/// shop row. The icon itself is painted art, so this is only ever the
+/// surrounding colour.
 Color boosterColor(BoosterType type) => switch (type) {
   BoosterType.hammer => AppColors.info,
   BoosterType.bomb => AppColors.danger,

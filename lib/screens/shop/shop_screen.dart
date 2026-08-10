@@ -7,6 +7,7 @@ import '../../monetisation/products.dart';
 import '../../monetisation/purchase_service.dart';
 import '../../services/analytics_service.dart';
 import '../../services/service_locator.dart';
+import '../../theme/app_art.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
@@ -87,6 +88,7 @@ class _ShopScreenState extends State<ShopScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: GameBackground(
+        scene: ArtScene.menu,
         child: SafeArea(
           child: PlayerBuilder(
             builder: (BuildContext context, player) {
@@ -273,11 +275,7 @@ class _StarterPackCard extends StatelessWidget {
               ),
               for (final MapEntry<BoosterType, int> e in pack.boosters.entries)
                 _PackItem(
-                  icon: Icon(
-                    boosterIcon(e.key),
-                    size: 22,
-                    color: boosterColor(e.key),
-                  ),
+                  icon: BoosterIcon(type: e.key, size: 24),
                   label: 'x${e.value}',
                 ),
             ],
@@ -433,7 +431,8 @@ class _BoosterRow extends StatelessWidget {
               color: boosterColor(type).withValues(alpha: 0.16),
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
-            child: Icon(boosterIcon(type), color: boosterColor(type)),
+            padding: const EdgeInsets.all(4),
+            child: BoosterIcon(type: type, size: 36),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(

@@ -7,13 +7,16 @@ import '../../economy/player_service.dart';
 import '../../models/daily_state.dart';
 import '../../progression/daily_service.dart';
 import '../../services/service_locator.dart';
+import '../../theme/app_art.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/game_icons.dart';
 import '../../widgets/game_ui.dart';
 import '../../widgets/currency_pill.dart';
 import '../../widgets/kd_button.dart';
 import '../../widgets/kd_card.dart';
+import '../../widgets/kingdom_logo.dart';
 import '../debug/debug_menu.dart';
 import '../game/game_screen.dart';
 import '../kingdom/kingdom_screen.dart';
@@ -89,6 +92,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scaffold(
       body: GameBackground(
+        scene: ArtScene.home,
         child: SafeArea(
           child: PlayerBuilder(
             builder: (BuildContext context, PlayerService player) {
@@ -108,6 +112,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                       ),
                       child: Column(
                         children: <Widget>[
+                          // The lockup carries the wordmark and the tagline, so
+                          // the home screen needs no title text of its own.
+                          const KingdomLogoArt(width: 176),
+                          const SizedBox(height: AppSpacing.xs),
                           _KingdomHero(
                             kingdom: kingdom,
                             upgradesDone: done,
@@ -363,11 +371,7 @@ class _DailyStrip extends StatelessWidget {
               children: <Widget>[
                 Row(
                   children: <Widget>[
-                    const Icon(
-                      Icons.card_giftcard_rounded,
-                      color: AppColors.gold,
-                      size: 20,
-                    ),
+                    const CalendarIcon(size: 22),
                     const SizedBox(width: AppSpacing.xs),
                     Expanded(
                       child: Text(

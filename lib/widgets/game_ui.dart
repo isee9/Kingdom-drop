@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_art.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 
@@ -547,33 +548,94 @@ class _RibbonPainter extends CustomPainter {
       oldDelegate.color != color || oldDelegate.edgeColor != edgeColor;
 }
 
-/// The app background: a graded sky with a vignette, so screens have depth
+/// The app background: painted art under a scrim, so screens have depth
 /// instead of being a flat fill.
+///
+/// Three layers, bottom to top:
+///
+/// 1. The navy gradient. It is the ground the art sits on and the whole
+///    background on its own if the image is missing, so no screen can ever
+///    render on bare white.
+/// 2. The painted backdrop for [scene], cropped with [BoxFit.cover] — never
+///    stretched, whatever the aspect ratio of the phone.
+/// 3. A scrim. This is the part that matters: the paintings are busy and
+///    bright, and white text over a sunlit castle is unreadable. Each scene
+///    declares how hard to push it, darkest at the top and bottom where the
+///    HUD and the buttons live.
 class GameBackground extends StatelessWidget {
-  const GameBackground({required this.child, super.key});
+  const GameBackground({
+    required this.child,
+    this.scene = ArtScene.menu,
+    super.key,
+  });
 
   final Widget child;
 
+  /// Which painted backdrop to use.
+  final ArtScene scene;
+
+  /// Flat darkening over the whole image, per scene.
+  ///
+  /// Gameplay is the heaviest: the board has to be the brightest thing on
+  /// screen. But only just heaviest — an earlier pass pushed this to 0.62 and,
+  /// once the top/bottom ramp and the vignette were layered on, the corners
+  /// were 90% black and the painting had effectively been deleted. These
+  /// numbers are the most darkening each scene can take while the art is still
+  /// visible.
+  double get _veil => switch (scene) {
+    ArtScene.home => 0.26,
+    ArtScene.game => 0.44,
+    ArtScene.kingdom => 0.32,
+    ArtScene.menu => 0.46,
+  };
+
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
-      child: DecoratedBox(
-        // Corner darkening pulls the eye to the middle of the screen, where
-        // the board and the buttons are.
-        decoration: BoxDecoration(
-          gradient: RadialGradient(
-            center: const Alignment(0, -0.35),
-            radius: 1.1,
-            colors: <Color>[
-              Colors.transparent,
-              Colors.black.withValues(alpha: 0.45),
-            ],
-            stops: const <double>[0.55, 1],
+    return Stack(
+      fit: StackFit.expand,
+      children: <Widget>[
+        const DecoratedBox(
+          decoration: BoxDecoration(gradient: AppColors.backgroundGradient),
+        ),
+        Image.asset(
+          AppArt.background(scene),
+          fit: BoxFit.cover,
+          filterQuality: FilterQuality.medium,
+          // No art bundled: layer 1 already drew a complete background.
+          errorBuilder: (BuildContext _, Object _, StackTrace? _) =>
+              const SizedBox.shrink(),
+        ),
+        DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: <Color>[
+                Colors.black.withValues(alpha: _veil + 0.12),
+                Colors.black.withValues(alpha: _veil),
+                Colors.black.withValues(alpha: _veil + 0.14),
+              ],
+              stops: const <double>[0, 0.42, 1],
+            ),
           ),
         ),
-        child: child,
-      ),
+        DecoratedBox(
+          // Corner darkening pulls the eye to the middle of the screen, where
+          // the board and the buttons are.
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: const Alignment(0, -0.35),
+              radius: 1.1,
+              colors: <Color>[
+                Colors.transparent,
+                Colors.black.withValues(alpha: 0.28),
+              ],
+              stops: const <double>[0.55, 1],
+            ),
+          ),
+        ),
+        child,
+      ],
     );
   }
 }

@@ -7,6 +7,7 @@ import '../../game/controller/game_controller.dart';
 import '../../game/engine/game_engine.dart';
 import '../../monetisation/ad_service.dart';
 import '../../services/service_locator.dart';
+import '../../theme/app_art.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
@@ -146,6 +147,7 @@ class _GameSummaryScreenState extends State<GameSummaryScreen> {
       child: Scaffold(
         backgroundColor: Colors.transparent,
         body: GameBackground(
+          scene: ArtScene.menu,
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
@@ -335,11 +337,7 @@ class _RewardRow extends StatelessWidget {
           Container(width: 1, height: 44, color: AppColors.border),
           Expanded(
             child: _RewardTile(
-              icon: const Icon(
-                Icons.auto_awesome_rounded,
-                size: 26,
-                color: AppColors.primaryLight,
-              ),
+              icon: const XpIcon(size: 28),
               value: xp,
               label: 'XP',
             ),

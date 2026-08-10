@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Deep royal indigo: the app's background colour, used behind the
-         adaptive icon and by the launch screen so startup has no white flash. -->
-    <color name="ic_launcher_background">#1F1747</color>
+    <!-- Sits behind the adaptive icon's foreground badge. Matched to the dark
+         corners of assets/art/branding/app_icon.png so the inset badge does not
+         read as a sticker pasted onto a different colour. -->
+    <color name="ic_launcher_background">#0A0620</color>
     <color name="kd_background">#15122B</color>
 </resources>

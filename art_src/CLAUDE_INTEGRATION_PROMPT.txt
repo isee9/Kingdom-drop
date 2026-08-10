@@ -1,0 +1,42 @@
+You are integrating the supplied KINGDOM DROP art pack into the existing game.
+
+First inspect the full current codebase and the entire supplied `KingdomDrop_ArtPack` folder. Read `ASSET_GUIDE.md` before changing code.
+
+GOAL:
+Transform the current prototype so it visually matches `reference/visual_target_reference.png` as closely as practical, while preserving all existing gameplay logic and working features.
+
+REQUIREMENTS:
+- Use the supplied artwork instead of claiming artwork cannot be created.
+- Replace plain/default backgrounds with the supplied fantasy backgrounds.
+- Use the supplied KINGDOM DROP branding/logo prominently on the home screen.
+- Use the supplied app icon artwork for the app icon pipeline where technically appropriate.
+- Replace flat/default UI styling with royal-blue/navy panels, gold edging, glossy buttons and the supplied UI artwork.
+- Integrate the supplied currency/booster/chest icons.
+- Update the puzzle board so blocks visually match the glossy supplied tile art.
+- Use the supplied Forgotten Keep artwork for kingdom progression states.
+- Keep dynamic text, score values, currency totals and prices rendered in code rather than baked into image assets.
+- Slice/crop sprite sheets into individual reusable assets if needed; create those derivative files inside the project.
+- Maintain responsive portrait layout and safe areas.
+- Keep gameplay performance smooth.
+- Do not alter game mechanics merely to fit the art.
+- Do not remove existing working features.
+
+Prioritise these screens:
+1. Home
+2. Gameplay
+3. Kingdom progression
+4. Game over/results
+5. Daily rewards/challenges
+6. Shop
+
+VISUAL STANDARD:
+The finished result must look like a commercially released casual mobile game, not a Flutter/web prototype.
+
+After integration:
+- run the project
+- check every major screen visually
+- fix clipping/stretching/poor contrast
+- run existing tests
+- provide a concise summary of all files changed and any assets that still need final production replacements.
+
+Do not just describe the changes. Implement them now.

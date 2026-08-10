@@ -199,11 +199,9 @@ class _ChestArt extends StatelessWidget {
             BoxShadow(color: _accent.withValues(alpha: 0.4), blurRadius: 30),
           ],
         ),
-        child: Icon(
-          opened ? Icons.auto_awesome_rounded : Icons.inventory_2_rounded,
-          size: 60,
-          color: Colors.white,
-        ),
+        // Closed it is the glowing mystery chest; opened it is the spilling
+        // one, which is the whole reveal in a single asset swap.
+        child: Center(child: ChestIcon(size: 96, mystery: !opened)),
       ),
     );
   }
@@ -230,7 +228,7 @@ class _RewardList extends StatelessWidget {
         ),
       for (final MapEntry<BoosterType, int> e in reward.boosters.entries)
         _RewardTile(
-          icon: Icon(boosterIcon(e.key), size: 26, color: boosterColor(e.key)),
+          icon: BoosterIcon(type: e.key, size: 26),
           label: 'x${e.value}',
         ),
     ];

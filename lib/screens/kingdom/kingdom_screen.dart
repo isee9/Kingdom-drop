@@ -6,6 +6,7 @@ import '../../core/utils/formatters.dart';
 import '../../economy/player_service.dart';
 import '../../progression/chest_service.dart';
 import '../../services/service_locator.dart';
+import '../../theme/app_art.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
@@ -117,6 +118,7 @@ class _KingdomScreenState extends State<KingdomScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: GameBackground(
+        scene: ArtScene.kingdom,
         child: SafeArea(
           child: PlayerBuilder(
             builder: (BuildContext context, PlayerService player) {
@@ -136,10 +138,17 @@ class _KingdomScreenState extends State<KingdomScreen> {
                         AppSpacing.xxl,
                       ),
                       children: <Widget>[
-                        KingdomView(
-                          kingdom: kingdom,
-                          upgradesDone: done,
-                          animateTo: _animatingIndex,
+                        // Framed like the hero panel on Home and the intro, so
+                        // the diorama reads as the same object in all three
+                        // places.
+                        GamePanel(
+                          padding: const EdgeInsets.all(6),
+                          studs: true,
+                          child: KingdomView(
+                            kingdom: kingdom,
+                            upgradesDone: done,
+                            animateTo: _animatingIndex,
+                          ),
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         Text(

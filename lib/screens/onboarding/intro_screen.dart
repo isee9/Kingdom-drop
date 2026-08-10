@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/config/kingdom_config.dart';
 import '../../services/service_locator.dart';
+import '../../theme/app_art.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
@@ -71,6 +72,7 @@ class _IntroScreenState extends State<IntroScreen>
 
     return Scaffold(
       body: GameBackground(
+        scene: ArtScene.kingdom,
         child: SafeArea(
           // The intro has a lot of vertical content. On a short screen the
           // fixed Spacers would overflow, so the whole thing scrolls while

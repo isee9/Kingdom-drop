@@ -87,13 +87,17 @@ abstract final class AppColors {
   static const Color previewClear = Color(0x70FFC33A);
 
   /// Block palette. A shape keeps its colour for the life of the board.
+  ///
+  /// These are sampled from the painted tile faces in `assets/art/tiles/` and
+  /// are index-aligned with [AppArt.tiles], so the clear-burst particles, the
+  /// tray and the board all agree on what "colour 2" is even though the board
+  /// draws the painting and the particles draw the colour.
   static const List<Color> blocks = <Color>[
-    Color(0xFF7B5CFF), // violet
-    Color(0xFF2FA8F5), // sky
-    Color(0xFF3FCF63), // leaf
-    Color(0xFFFFC02E), // gold
-    Color(0xFFFF6B4A), // ember
-    Color(0xFFFF5C9E), // rose
+    Color(0xFFE02A20), // red
+    Color(0xFFF5A800), // gold
+    Color(0xFF55A310), // green
+    Color(0xFF1478E0), // blue
+    Color(0xFF9C3ECB), // purple
   ];
 
   static Color _shift(Color c, double amount) {

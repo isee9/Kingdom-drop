@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'app/kingdom_drop_app.dart';
 import 'services/service_locator.dart';
+import 'theme/app_art.dart';
 import 'theme/app_theme.dart';
 
 Future<void> main() async {
@@ -15,6 +16,11 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
   SystemChrome.setSystemUIOverlayStyle(AppTheme.overlayStyle);
+
+  // Decode the block faces and warm the backdrops before the first frame, so
+  // the board never paints a frame of untextured blocks and the splash does not
+  // flash its gradient before the castle appears.
+  await ArtCache.preload();
 
   final AppServices services = await bootstrapServices();
 

@@ -45,6 +45,15 @@ flutter:
     - assets/audio/
     - assets/images/
 
+    # Painted art, sliced from the source sheets in art_src/ by
+    # tool/slice_art.py. Every path is declared in lib/theme/app_art.dart —
+    # nothing else in the app should hardcode one of these strings.
+    - assets/art/backgrounds/
+    - assets/art/branding/
+    - assets/art/icons/
+    - assets/art/kingdoms/
+    - assets/art/tiles/
+
   # FONT SLOT — see README "Replacing art".
   # Drop a licensed display font into assets/fonts/ and uncomment this block,
   # then set AppTextStyles.displayFontFamily to 'KingdomDisplay'.

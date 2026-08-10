@@ -187,19 +187,9 @@ class _DayTile extends StatelessWidget {
   }
 
   Widget _rewardIcon() {
-    if (config.chest) {
-      return const Icon(
-        Icons.inventory_2_rounded,
-        color: AppColors.gold,
-        size: 24,
-      );
-    }
+    if (config.chest) return const ChestIcon(size: 26, mystery: true);
     if (config.booster != null) {
-      return Icon(
-        boosterIcon(config.booster!),
-        color: boosterColor(config.booster!),
-        size: 24,
-      );
+      return BoosterIcon(type: config.booster!, size: 26);
     }
     return const CoinIcon(size: 24);
   }

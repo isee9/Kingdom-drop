@@ -1,5 +1,8 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 
+import '../../theme/app_art.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 
@@ -9,11 +12,13 @@ import '../../theme/app_spacing.dart';
 /// the tutorial — comes from [paintBlock], so they are guaranteed to match and
 /// the block style is a one-place change.
 ///
-/// A block is built from five passes, and each one is doing a job:
+/// Normally that means stamping the painted tile face from `assets/art/tiles/`.
+/// When the art is not loaded — a widget test with no asset bundle, or a build
+/// with the pack removed — it falls back to drawing the block in five passes:
 /// a dark contact shadow to sit it on the board, a dark outline so it reads
 /// against any colour, a solid bottom lip for thickness, the graded face, and a
-/// gloss highlight. Flat rectangles are what make a puzzle board look like a
-/// prototype; this is the difference.
+/// gloss highlight. The two are close enough that the fallback never looks
+/// broken, just less rich.
 abstract final class BlockPainting {
   /// Inset of the visible block inside its cell, as a fraction of cell size.
   static const double inset = 0.045;
@@ -34,6 +39,13 @@ abstract final class BlockPainting {
     if (rect.width <= 1) return;
 
     final int i = colorIndex.abs() % AppColors.blocks.length;
+
+    final ui.Image? art = ArtCache.tile(i);
+    if (art != null) {
+      _paintArtBlock(canvas, rect, art, opacity);
+      return;
+    }
+
     final Color base = AppColors.blocks[i];
     final Color top = AppColors.blockTop(i);
     final Color edge = AppColors.blockEdge(i);
@@ -113,6 +125,41 @@ abstract final class BlockPainting {
         Radius.circular(radius * 0.6),
       ),
       Paint()..color = Colors.white.withValues(alpha: 0.13 * opacity),
+    );
+  }
+
+  /// Stamps a painted tile face into [rect].
+  ///
+  /// The artwork already carries its own rim, bevel and gloss, so all that is
+  /// added here is a contact shadow — without one the tiles look pasted on
+  /// rather than sitting in the board's sockets.
+  static void _paintArtBlock(
+    Canvas canvas,
+    Rect rect,
+    ui.Image art,
+    double opacity,
+  ) {
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        rect.deflate(rect.width * 0.06).translate(0, rect.height * 0.07),
+        Radius.circular(rect.width * AppRadius.blockFraction),
+      ),
+      Paint()
+        ..color = Colors.black.withValues(alpha: 0.34 * opacity)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
+    );
+
+    canvas.drawImageRect(
+      art,
+      Rect.fromLTWH(0, 0, art.width.toDouble(), art.height.toDouble()),
+      rect,
+      Paint()
+        // Alpha on the paint modulates the image, which is how a placement
+        // animation fades a block in.
+        ..color = Colors.white.withValues(alpha: opacity)
+        // The faces are 128px and a board cell is around 45, so this is always
+        // a downscale and always wants filtering.
+        ..filterQuality = FilterQuality.medium,
     );
   }
 

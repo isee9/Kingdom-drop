@@ -1,12 +1,52 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_art.dart';
 import '../theme/app_colors.dart';
+
+/// The painted logo lockup: crown, wordmark and tagline ribbon in one piece.
+///
+/// This is the app's identity wherever there is room for it — the splash and
+/// the top of the home screen. The tagline is part of the artwork, so a screen
+/// showing this must not print "Build. Clear. Conquer." underneath as well.
+///
+/// If the art is missing it falls back to the code-drawn mark plus the
+/// [KingdomWordmark] below it, which is the same lockup assembled from parts.
+class KingdomLogoArt extends StatelessWidget {
+  const KingdomLogoArt({required this.width, super.key});
+
+  final double width;
+
+  /// The painted lockup is 720×616.
+  static const double _aspect = 720 / 616;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: width,
+      height: width / _aspect,
+      child: Image.asset(
+        AppArt.logo,
+        fit: BoxFit.contain,
+        filterQuality: FilterQuality.medium,
+        errorBuilder: (BuildContext _, Object _, StackTrace? _) => Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            KingdomLogo(size: width * 0.42),
+            SizedBox(height: width * 0.04),
+            KingdomWordmark(fontSize: width * 0.17),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 /// The Kingdom Drop mark: a crown built out of puzzle blocks.
 ///
-/// This is the app's identity — it appears on the splash, in the icon, and as
-/// the header on the home screen. Drawn in code so it stays sharp at any size
-/// and can be rendered straight to PNG by `tool/generate_icons.dart`.
+/// Kept alongside the painted logo because it is vector: it is what
+/// `tool/generate_icons.dart` rasterises when there is no painted icon to
+/// resize, and it is the fallback inside [KingdomLogoArt].
 class KingdomLogo extends StatelessWidget {
   const KingdomLogo({this.size = 120, super.key});
 

@@ -3,18 +3,26 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../core/config/kingdom_config.dart';
+import '../../theme/app_art.dart';
 import '../../theme/app_spacing.dart';
 
-/// Renders a kingdom as original vector art.
+/// Renders a kingdom: the painted castle standing in a scene built from the
+/// realm's own palette.
 ///
-/// Each kingdom is a [KingdomPalette] plus a count of completed upgrades — the
-/// same five structures are drawn for every realm, recoloured and re-lit. That
-/// keeps ten kingdoms as ten rows of data instead of ten art files, and when
-/// finished artwork arrives only this painter changes.
+/// Two layers. The scenery — sky, stars, clouds, ridges, hills, ground, trees
+/// and the path to the gate — is painted in code from the realm's
+/// [KingdomPalette], so all ten realms look like different places. The castle
+/// on top of it is the artwork from `assets/art/kingdoms/`, in one of three
+/// states: ruined, part-restored, restored.
 ///
-/// A structure the player has not paid for yet is drawn cracked and unlit; once
-/// bought it straightens up, brightens, and (for the tower and keep) raises a
-/// banner.
+/// The pack only contains castles for the Forgotten Keep, and they are used for
+/// every realm. That is a deliberate MVP call — one good painting shared beats
+/// ten flat vector scenes — and per-realm castle art is the first thing to
+/// commission next. Because the scenery underneath is palette-driven, dropping
+/// in a second castle set later is a lookup change here and nothing else.
+///
+/// If the artwork cannot be loaded the painter draws its own structures, so the
+/// screen is never empty.
 class KingdomView extends StatelessWidget {
   const KingdomView({
     required this.kingdom,
@@ -26,37 +34,151 @@ class KingdomView extends StatelessWidget {
   final KingdomDefinition kingdom;
   final int upgradesDone;
 
-  /// When set, the structure at this index animates from ruined to restored.
+  /// When set, the structure at this index has just been bought and the scene
+  /// plays its restoration beat.
   final int? animateTo;
+
+  /// How much of the frame's height the castle may occupy. The three states
+  /// have different proportions — the restored keep is much taller than the
+  /// ruin — so they are fitted by height and allowed to find their own width,
+  /// which is what makes the castle visibly grow as the realm is rebuilt.
+  static const double _castleHeightFactor = 0.68;
+
+  /// Where the castle's base sits, as a fraction of height. Slightly below the
+  /// painter's ground line so it stands on the ground rather than floating
+  /// above it.
+  static const double _castleBaseline = 0.90;
 
   @override
   Widget build(BuildContext context) {
+    // Mid-purchase the scene should already show what was just paid for.
+    final int shown = animateTo == null
+        ? upgradesDone
+        : math.max(upgradesDone, animateTo! + 1);
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppRadius.lg),
       child: AspectRatio(
         aspectRatio: 16 / 10,
-        child: animateTo == null
-            ? CustomPaint(
-                painter: _KingdomPainter(
-                  palette: kingdom.palette,
-                  upgradesDone: upgradesDone,
-                ),
-              )
-            : TweenAnimationBuilder<double>(
-                key: ValueKey<int>(animateTo!),
-                tween: Tween<double>(begin: 0, end: 1),
-                duration: const Duration(milliseconds: 900),
-                curve: Curves.easeOutBack,
-                builder: (BuildContext context, double t, _) => CustomPaint(
+        child: LayoutBuilder(
+          builder: (BuildContext context, BoxConstraints constraints) {
+            final double height = constraints.maxHeight;
+
+            return Stack(
+              fit: StackFit.expand,
+              children: <Widget>[
+                CustomPaint(
                   painter: _KingdomPainter(
                     palette: kingdom.palette,
                     upgradesDone: upgradesDone,
                     animatingIndex: animateTo,
-                    animationValue: t,
+                    // The castle art covers the structures; the painter only
+                    // draws them itself if the art fails to load.
+                    sceneryOnly: true,
                   ),
                 ),
-              ),
+                Padding(
+                  padding: EdgeInsets.only(
+                    bottom: height * (1 - _castleBaseline),
+                  ),
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: SizedBox(
+                      height: height * _castleHeightFactor,
+                      child: _Castle(
+                        asset: AppArt.keepFor(shown),
+                        // A key change restarts the entrance animation, which
+                        // is the "something just changed" beat after a
+                        // purchase.
+                        justUpgraded: animateTo != null,
+                        fallback: CustomPaint(
+                          painter: _KingdomPainter(
+                            palette: kingdom.palette,
+                            upgradesDone: upgradesDone,
+                            animatingIndex: animateTo,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
+    );
+  }
+}
+
+/// The castle itself: crossfades between states and pops when one is bought.
+class _Castle extends StatelessWidget {
+  const _Castle({
+    required this.asset,
+    required this.justUpgraded,
+    required this.fallback,
+  });
+
+  final String asset;
+  final bool justUpgraded;
+
+  /// Drawn instead of the artwork when the pack is not bundled. It needs the
+  /// whole frame, not the castle box, so it is sized by the caller's Stack
+  /// rather than by this widget.
+  final Widget fallback;
+
+  @override
+  Widget build(BuildContext context) {
+    final Widget image = Image.asset(
+      asset,
+      key: ValueKey<String>(asset),
+      fit: BoxFit.contain,
+      alignment: Alignment.bottomCenter,
+      filterQuality: FilterQuality.medium,
+      errorBuilder: (BuildContext _, Object _, StackTrace? _) => OverflowBox(
+        maxHeight: double.infinity,
+        maxWidth: double.infinity,
+        child: fallback,
+      ),
+    );
+
+    // Crossfade so the keep grows into its next state rather than snapping.
+    final Widget switched = AnimatedSwitcher(
+      duration: const Duration(milliseconds: 650),
+      switchInCurve: Curves.easeOutBack,
+      switchOutCurve: Curves.easeIn,
+      layoutBuilder: (Widget? current, List<Widget> previous) => Stack(
+        alignment: Alignment.bottomCenter,
+        children: <Widget>[...previous, ?current],
+      ),
+      transitionBuilder: (Widget child, Animation<double> animation) =>
+          FadeTransition(
+            opacity: animation,
+            child: ScaleTransition(
+              scale: Tween<double>(begin: 0.88, end: 1).animate(animation),
+              alignment: Alignment.bottomCenter,
+              child: child,
+            ),
+          ),
+      child: image,
+    );
+
+    if (!justUpgraded) return switched;
+
+    // Even when the state art does not change — three pictures cover five
+    // upgrades — the purchase should register visually.
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 900),
+      curve: Curves.easeOut,
+      builder: (BuildContext context, double t, Widget? child) =>
+          Transform.scale(
+            // A single overshoot and settle.
+            scale: 1 + math.sin(t * math.pi) * 0.05,
+            alignment: Alignment.bottomCenter,
+            child: child,
+          ),
+      child: switched,
     );
   }
 }
@@ -66,13 +188,16 @@ class _KingdomPainter extends CustomPainter {
     required this.palette,
     required this.upgradesDone,
     this.animatingIndex,
-    this.animationValue = 1,
+    this.sceneryOnly = false,
   });
 
   final KingdomPalette palette;
   final int upgradesDone;
   final int? animatingIndex;
-  final double animationValue;
+
+  /// Draw the landscape but not the buildings, because the painted castle is
+  /// going on top of it.
+  final bool sceneryOnly;
 
   /// Ground line, as a fraction of height.
   static const double _groundY = 0.80;
@@ -87,6 +212,13 @@ class _KingdomPainter extends CustomPainter {
     _paintTrees(canvas, size);
     _paintPath(canvas, size);
 
+    if (sceneryOnly) {
+      // The painted castle is about to be drawn on top. Without a shadow it
+      // hovers over the ground rather than standing on it.
+      _paintCastleShadow(canvas, size);
+      return;
+    }
+
     // Back to front.
     _paintCastle(canvas, size, _restoration(4));
     _paintTower(canvas, size, _restoration(3));
@@ -95,11 +227,10 @@ class _KingdomPainter extends CustomPainter {
     _paintGate(canvas, size, _restoration(0));
   }
 
-  /// 0 = ruined, 1 = fully restored, with the in-flight upgrade tweened.
-  double _restoration(int index) {
-    if (animatingIndex == index) return animationValue;
-    return index < upgradesDone ? 1 : 0;
-  }
+  /// 0 = ruined, 1 = fully restored. The upgrade being bought right now counts
+  /// as restored, because the player has already paid for it.
+  double _restoration(int index) =>
+      index < upgradesDone || index == animatingIndex ? 1 : 0;
 
   Color _structureColour(double restoration) =>
       Color.lerp(palette.structure, palette.structureLit, restoration)!;
@@ -193,7 +324,7 @@ class _KingdomPainter extends CustomPainter {
     final double y = size.height * _groundY;
     final math.Random rng = math.Random(7);
     final Color trunk = Color.lerp(palette.ground, Colors.black, 0.45)!;
-    final Color foliage = Color.lerp(palette.ground, Colors.white, 0.16)!;
+    final Color foliage = Color.lerp(palette.ground, Colors.black, 0.35)!;
 
     // Left cluster and right cluster, kept clear of the structures.
     for (final double band in <double>[0.02, 0.86]) {
@@ -267,15 +398,42 @@ class _KingdomPainter extends CustomPainter {
     canvas.drawPath(hills, far);
   }
 
+  /// A soft pool of shade where the castle meets the ground.
+  void _paintCastleShadow(Canvas canvas, Size size) {
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: Offset(size.width * 0.5, size.height * 0.885),
+        width: size.width * 0.66,
+        height: size.height * 0.085,
+      ),
+      Paint()
+        ..color = Colors.black.withValues(alpha: 0.34)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.height * 0.022),
+    );
+  }
+
   void _paintGround(Canvas canvas, Size size) {
     final double y = size.height * _groundY;
+    final Rect ground = Rect.fromLTWH(0, y, size.width, size.height - y);
+
+    // Graded and pulled towards black at the front. A flat slab of saturated
+    // green competed with the painted castle standing on it; receding into
+    // shadow at the bottom of the frame lets the castle be the subject.
     canvas.drawRect(
-      Rect.fromLTWH(0, y, size.width, size.height - y),
-      Paint()..color = palette.ground,
+      ground,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: <Color>[
+            Color.lerp(palette.ground, Colors.black, 0.25)!,
+            Color.lerp(palette.ground, Colors.black, 0.62)!,
+          ],
+        ).createShader(ground),
     );
     canvas.drawRect(
       Rect.fromLTWH(0, y, size.width, size.height * 0.012),
-      Paint()..color = Colors.white.withValues(alpha: 0.12),
+      Paint()..color = Colors.white.withValues(alpha: 0.10),
     );
   }
 
@@ -619,7 +777,7 @@ class _KingdomPainter extends CustomPainter {
   @override
   bool shouldRepaint(_KingdomPainter oldDelegate) =>
       oldDelegate.upgradesDone != upgradesDone ||
-      oldDelegate.animationValue != animationValue ||
       oldDelegate.animatingIndex != animatingIndex ||
+      oldDelegate.sceneryOnly != sceneryOnly ||
       oldDelegate.palette != palette;
 }

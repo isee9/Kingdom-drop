@@ -29,7 +29,8 @@ The flags matter:
   asset 404s.
 - `.nojekyll` stops Pages running Jekyll over the output.
 - The deletions drop debug symbol maps and the unused renderer variants,
-  taking the folder from 41 MB to 17 MB.
+  taking the folder from about 46 MB to 22 MB. Roughly 4 MB of what is left is
+  the painted art in `assets/assets/art/`.
 
 **Delete this folder whenever you like** — it is a convenience for trying the
 game, not part of the app. The real targets are Android and iOS.
