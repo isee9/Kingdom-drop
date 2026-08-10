@@ -136,7 +136,8 @@ class SaveData {
        achievements = achievements ?? <String, AchievementProgress>{},
        dailyReward = dailyReward ?? DailyRewardState(),
        dailyChallenge = dailyChallenge ?? DailyChallengeState(),
-       ownedProducts = ownedProducts ?? <String>{};
+       ownedProducts = ownedProducts ?? <String>{},
+       settings = settings ?? GameSettings();
 
   /// A brand-new player: starting boosters, nothing else.
   factory SaveData.fresh({DateTime? now}) => SaveData(
@@ -225,7 +226,7 @@ class SaveData {
   bool adsRemoved;
   bool tutorialCompleted;
   bool introSeen;
-  GameSettings settings = GameSettings();
+  GameSettings settings;
 
   int boosterCount(BoosterType type) => boosters[type] ?? 0;
 

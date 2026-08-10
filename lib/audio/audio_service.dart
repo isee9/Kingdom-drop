@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 /// Every sound the game can ask for.
 ///
@@ -73,9 +74,27 @@ class AudioService {
   bool get soundEnabled => _soundEnabled;
   bool get musicEnabled => _musicEnabled;
 
+  /// True when no audio assets are bundled, so the platform audio plugin is
+  /// never touched at all.
+  bool _silent = false;
+
+  bool get isSilent => _silent;
+
   Future<void> init() async {
     if (_initialised) return;
     _initialised = true;
+
+    // The project ships with the audio slots empty. Creating platform players
+    // for a game that has nothing to play is pure cost, and on some platforms
+    // the native side aborts the process when its audio backend is missing —
+    // which a Dart try/catch cannot rescue. So check for assets first and stay
+    // completely out of the plugin's way when there are none.
+    _silent = !await _hasBundledAudio();
+    if (_silent) {
+      debugPrint('[audio] no audio assets bundled — running silent');
+      return;
+    }
+
     try {
       for (int i = 0; i < _poolSize; i++) {
         final AudioPlayer player = AudioPlayer();
@@ -84,10 +103,26 @@ class AudioService {
         _sfxPool.add(player);
       }
     } catch (error) {
-      // Audio is optional. If the platform side is unavailable (as in tests or
-      // on a device with no audio route) the game continues in silence.
+      // Audio is optional. If the platform side is unavailable the game
+      // continues in silence rather than failing to start.
       debugPrint('[audio] init failed, running silent: $error');
+      _silent = true;
       _sfxPool.clear();
+    }
+  }
+
+  /// Looks in the asset manifest for anything under `assets/audio/`.
+  Future<bool> _hasBundledAudio() async {
+    try {
+      final AssetManifest manifest = await AssetManifest.loadFromAssetBundle(
+        rootBundle,
+      );
+      return manifest
+          .listAssets()
+          .any((String key) => key.startsWith('assets/audio/'));
+    } catch (error) {
+      debugPrint('[audio] could not read the asset manifest: $error');
+      return false;
     }
   }
 
@@ -107,7 +142,7 @@ class AudioService {
 
   /// Fires a one-shot effect. Never awaited by gameplay code.
   void play(Sfx sfx) {
-    if (!_soundEnabled || _unavailable.contains(sfx)) return;
+    if (_silent || !_soundEnabled || _unavailable.contains(sfx)) return;
     final String? asset = _assets[sfx];
     if (asset == null || _sfxPool.isEmpty) return;
 
@@ -122,12 +157,15 @@ class AudioService {
     );
   }
 
+  /// The button press cue, used by every tappable control.
+  void playTap() => play(Sfx.buttonTap);
+
   /// Convenience for a clear: picks the plain or combo cue by group count.
   void playClear(int groupCount) =>
       play(groupCount > 1 ? Sfx.comboCleared : Sfx.lineCleared);
 
   Future<void> startMusic() async {
-    if (!_musicEnabled || _musicUnavailable) return;
+    if (_silent || !_musicEnabled || _musicUnavailable) return;
     try {
       _musicPlayer ??= AudioPlayer();
       await _musicPlayer!.setReleaseMode(ReleaseMode.loop);
