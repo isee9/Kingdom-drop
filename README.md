@@ -130,6 +130,36 @@ flutter run -d linux
 
 The window opens at phone proportions (430×932).
 
+### Playing it in a browser
+
+A web target is also checked in, purely so the game can be tried without a
+device. It is a convenience, not a shipping platform.
+
+```bash
+flutter run -d chrome
+```
+
+Or build it and serve the folder — this needs no Flutter on the machine doing
+the serving, so it is the easiest way to hand the game to someone else:
+
+```bash
+flutter build web --release --no-web-resources-cdn
+cd build/web && python3 -m http.server 8000
+# then open http://localhost:8000
+```
+
+`--no-web-resources-cdn` bundles CanvasKit into the build instead of fetching
+it from Google's CDN at runtime, so the game works on a locked-down network.
+Flutter still fetches the **Roboto** font from `fonts.gstatic.com` on first
+load; with no internet the game renders correctly but shows no text.
+
+On a screen wider than 480 logical pixels the app centres itself in a
+phone-width column rather than stretching — a tray spread across a desktop
+window would put the pieces out of thumb reach. Chrome's device toolbar
+(F12 → phone icon) gives an accurate phone preview.
+
+Web saves go to browser local storage, separate from any device progress.
+
 ---
 
 ## Running the tests

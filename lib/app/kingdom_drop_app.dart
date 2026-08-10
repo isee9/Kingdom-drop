@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../core/config/app_config.dart';
+import '../theme/app_colors.dart';
 import '../screens/splash/splash_screen.dart';
 import '../services/service_locator.dart';
 import '../theme/app_theme.dart';
@@ -71,10 +72,46 @@ class _KingdomDropAppState extends State<KingdomDropApp>
                 maxScaleFactor: 1.3,
               ),
             ),
-            child: child ?? const SizedBox.shrink(),
+            child: _PhoneFrame(child: child ?? const SizedBox.shrink()),
           );
         },
       ),
+    );
+  }
+}
+
+/// Keeps the game at phone proportions on a wide screen.
+///
+/// Kingdom Drop is designed around a tall, one-handed portrait layout. In a
+/// desktop browser — or on a tablet — the window is far wider than that, and
+/// stretching the tray across it would put the pieces out of thumb reach and
+/// leave the board floating in space. Above [_maxWidth] the app is centred in a
+/// phone-width column against the app's own background instead.
+///
+/// On a phone this is a no-op: the constraint is never reached.
+class _PhoneFrame extends StatelessWidget {
+  const _PhoneFrame({required this.child});
+
+  static const double _maxWidth = 480;
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        if (constraints.maxWidth <= _maxWidth) return child;
+
+        return ColoredBox(
+          color: AppColors.background,
+          child: Center(
+            child: SizedBox(
+              width: _maxWidth,
+              child: ClipRect(child: child),
+            ),
+          ),
+        );
+      },
     );
   }
 }
