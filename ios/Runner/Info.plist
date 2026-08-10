@@ -70,5 +70,17 @@
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
+	<!-- CHANGE ME before shipping with ads on. This is Google's PUBLIC SAMPLE
+	     app ID: safe while developing, since it only serves test ads, but it
+	     must be your own AdMob app ID in a release built with ADS_ENABLED=true.
+	     The Google Mobile Ads SDK requires this key to be present. -->
+	<key>GADApplicationIdentifier</key>
+	<string>ca-app-pub-3940256099942544~1458002511</string>
+	<!-- Apple's tracking prompt. Kingdom Drop does not request tracking
+	     permission and serves non-personalised ads, so this string is here only
+	     because the ads SDK links ATT; if you ever do request tracking, this is
+	     the sentence the user is shown. -->
+	<key>NSUserTrackingUsageDescription</key>
+	<string>This identifier is used to show you more relevant ads.</string>
 </dict>
 </plist>

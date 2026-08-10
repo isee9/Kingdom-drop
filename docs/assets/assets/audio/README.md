@@ -1,12 +1,18 @@
-# Audio slots
+# Audio
 
-**This folder is intentionally empty of audio.** The game runs silently and
-correctly with no files here — `AudioService` checks the asset manifest at
-startup and never touches the platform audio plugin when there is nothing to
-play.
+These files are **generated**, not recorded or licensed. `tool/generate_audio.py`
+synthesises every one of them from scratch — sine partials, filtered noise and a
+Karplus-Strong plucked string — so the project carries no third-party audio
+rights, the same way `assets/art/` carries no third-party artwork.
 
-To add sound, drop correctly named files into this folder. They are picked up
-with no code change.
+Regenerate after changing anything in that script:
+
+```bash
+python3 tool/generate_audio.py     # needs numpy and ffmpeg
+```
+
+It is deterministic: the noise is seeded, so running it twice produces the same
+sound. The whole set is about 440 KB.
 
 ## Effects
 
@@ -29,18 +35,27 @@ with no code change.
 
 | Filename | Notes |
 | --- | --- |
-| `theme_loop.mp3` | Looped at 35% volume; stopped when the app backgrounds |
+| `theme_loop.mp3` | 23 s, A minor, looped at 35% volume; stopped when the app backgrounds |
 
-## Guidance
+## Design notes
 
-- **Format:** MP3 or OGG. Keep effects short (under ~400 ms) — the game is
-  fast and a long tail will overlap the next placement.
-- **Loudness:** normalise effects to roughly the same level. `combo.mp3` should
-  read as bigger than `line_cleared.mp3` without simply being louder.
-- **Licensing:** use audio you have the right to ship. Nothing in this project
-  currently carries any third-party licence, and it is worth keeping it that
-  way. If you buy or licence a pack, record the licence here.
-- **Size:** the whole set should comfortably fit in a couple of megabytes.
-  Anything larger is worth compressing.
+- **Levels are set per sound, not normalised flat.** A combo has to feel bigger
+  than a single clear without simply being louder, so it is longer, brighter and
+  has more notes. The button tap is the quietest thing in the game because it
+  fires constantly.
+- **Effects are short** — most are under 400 ms. The game is fast, and a long
+  tail overlaps the next placement.
+- **MP3, not OGG.** iOS will not play Ogg Vorbis. The cost is that MP3 carries a
+  few milliseconds of encoder padding, so the music loop has a very small seam
+  at the join. At 35% volume under a 23-second pad piece it is not audible in
+  practice; if it ever bothers you, an M4A/AAC re-encode is the fix.
+- **The game still runs with this folder emptied.** `AudioService` checks the
+  asset manifest at startup and never touches the platform audio plugin when
+  there is nothing to play.
 
-To change a filename, edit the `_assets` map in `lib/audio/audio_service.dart`.
+## Replacing this with licensed audio
+
+Drop correctly named files in and they are picked up with no code change. To
+change a filename, edit the `_assets` map in `lib/audio/audio_service.dart`. If
+you buy or licence a pack, record the licence here so the provenance of every
+asset in the project stays written down.

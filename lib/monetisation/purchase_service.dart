@@ -5,6 +5,10 @@ import 'package:flutter/foundation.dart';
 import '../core/config/app_config.dart';
 import '../economy/player_service.dart';
 import '../services/analytics_service.dart';
+// See the note in ad_service.dart: the io version returns the store-backed
+// service on Android and iOS, the stub returns null everywhere else.
+import 'live_services_stub.dart'
+    if (dart.library.io) 'live_services_io.dart';
 import 'products.dart';
 
 enum PurchaseStatus { success, cancelled, failed, alreadyOwned, unavailable }
@@ -158,17 +162,23 @@ void grantEntitlement(PlayerService player, Product product) {
 }
 
 /// Builds the purchase service for this build.
+///
+/// Live store billing only when `BILLING_ENABLED=true` was passed at build time
+/// *and* the platform supports it. Anything else falls back to the mock.
+///
+/// Note what that means for a release build: with billing off, the shop grants
+/// its goods without charging. That is correct for development and wrong to
+/// ship. See the launch guide.
 PurchaseService createPurchaseService({
   required PlayerService player,
   required AnalyticsService analytics,
 }) {
   if (AppConfig.billingEnabled) {
-    // TODO(owner): construct your in_app_purchase-backed implementation here
-    // once products exist in Play Console and App Store Connect.
-    debugPrint(
-      '[iap] BILLING_ENABLED is set but no live implementation is wired up; '
-      'continuing in mock mode',
+    final PurchaseService? live = createLivePurchaseService(
+      player: player,
+      analytics: analytics,
     );
+    if (live != null) return live;
   }
   return MockPurchaseService(player: player, analytics: analytics);
 }

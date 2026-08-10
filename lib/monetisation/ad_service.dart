@@ -4,6 +4,11 @@ import 'package:flutter/foundation.dart';
 
 import '../core/config/app_config.dart';
 import '../services/analytics_service.dart';
+// Chosen at compile time: the io version returns the AdMob-backed service on
+// Android and iOS, the stub returns null everywhere else. This is what keeps
+// google_mobile_ads out of the browser and desktop builds.
+import 'live_services_stub.dart'
+    if (dart.library.io) 'live_services_io.dart';
 
 /// Where a rewarded ad was offered from. Passed to analytics so the value of
 /// each placement can be compared later.
@@ -163,19 +168,13 @@ class InterstitialPacer {
 
 /// Builds the ad service for this build.
 ///
-/// When [AppConfig.adsEnabled] is turned on you would return your AdMob-backed
-/// implementation here. The mock stays as the default so the project builds and
-/// runs with no ad account configured.
+/// Live AdMob only when `ADS_ENABLED=true` was passed at build time *and* the
+/// platform supports it. Anything else falls back to the mock, so a
+/// misconfigured release is a game without ads rather than a crash on launch.
 AdService createAdService({required AnalyticsService analytics}) {
   if (AppConfig.adsEnabled) {
-    // TODO(owner): construct your AdMob implementation of AdService here after
-    // adding google_mobile_ads and configuring the unit IDs in AppConfig.
-    // Falling back to the mock keeps a misconfigured release runnable rather
-    // than crashing on launch.
-    debugPrint(
-      '[ads] ADS_ENABLED is set but no live implementation is wired up; '
-      'continuing in mock mode',
-    );
+    final AdService? live = createLiveAdService(analytics: analytics);
+    if (live != null) return live;
   }
   return MockAdService(analytics: analytics);
 }

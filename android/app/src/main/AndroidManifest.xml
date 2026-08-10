@@ -26,6 +26,20 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- CHANGE ME before shipping with ads on.
+             This is Google's PUBLIC SAMPLE app ID. It is safe to leave in place
+             while you develop — it only ever serves test ads — but it must be
+             replaced with your own AdMob app ID before a release with
+             ADS_ENABLED=true.
+
+             It cannot simply be deleted: the Google Mobile Ads SDK crashes the
+             app at launch if this entry is missing, whether or not the game ever
+             asks for an ad. Unlike ad unit IDs, an AdMob app ID is not a secret
+             and does have to live here in plain text. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-3940256099942544~3347511713"/>
+
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

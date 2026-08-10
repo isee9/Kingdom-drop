@@ -14,6 +14,10 @@ third-party artwork, audio, text or level data is used anywhere.
 
 ---
 
+> **Publishing it?** [`LAUNCH_GUIDE.md`](LAUNCH_GUIDE.md) is a step-by-step
+> walkthrough of getting this onto Google Play, written for someone who has
+> never published an app. This README is the developer reference.
+
 ## Contents
 
 - [What this is](#what-this-is)
@@ -383,16 +387,23 @@ Android and iOS out of the box.
 
 ### Sound
 
-`lib/audio/audio_service.dart` defines the `Sfx` enum and maps each cue to a
-filename under `assets/audio/`. **The project ships with those slots empty.**
+Twelve effects and a music loop, in `assets/audio/`. Like the art, they are
+**generated rather than licensed**: `tool/generate_audio.py` synthesises all of
+them from sine partials, filtered noise and a Karplus-Strong plucked string, so
+there is no third-party audio in the project. Regenerate with:
 
-To add sound, drop correctly named files into `assets/audio/` — see
-`assets/audio/README.md` for the exact list — and they start working with no
-code change.
+```bash
+python3 tool/generate_audio.py     # needs numpy and ffmpeg
+```
 
-The service checks the asset manifest at startup: with no audio bundled it
-never touches the platform audio plugin at all, so the game runs silently
-rather than paying for players it cannot use. Individual missing files are
+The whole set is about 440 KB. `lib/audio/audio_service.dart` defines the `Sfx`
+enum and maps each cue to a filename; dropping in replacement files with the
+same names needs no code change. See `assets/audio/README.md` for the list and
+the design notes.
+
+The service checks the asset manifest at startup, so emptying `assets/audio/`
+makes the game run silently rather than paying for players it cannot use — it
+never touches the platform audio plugin at all. Individual missing files are
 probed once, then muted.
 
 Music, Sound and Haptics toggles are in Settings and in the in-game pause menu,
@@ -603,11 +614,10 @@ address have been invented anywhere in this project.
 
 **Optional polish:**
 
-8. **Audio files** — twelve effects and one music loop. See
-   `assets/audio/README.md`.
-9. **A licensed display font** — see [Art](#art).
-10. **Castle art for realms 2–10.** The pack covers the Forgotten Keep only,
-    and all ten realms currently share it. See [Art](#art).
+8. **A licensed display font**, if you want one — see [Art](#art). The game
+   uses the platform UI font, which looks correct on both Android and iOS.
+9. **Castle art for realms 2–10.** The pack covers the Forgotten Keep only,
+   and all ten realms currently share it. See [Art](#art).
 
 ---
 

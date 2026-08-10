@@ -20,10 +20,10 @@
 -renamesourcefileattribute SourceFile
 
 # ---------------------------------------------------------------------------
-# When you add Google Mobile Ads (see README, "Enabling real ads"), uncomment:
-# -keep class com.google.android.gms.ads.** { *; }
-# -dontwarn com.google.android.gms.ads.**
-#
-# When you add in_app_purchase:
-# -keep class com.android.billingclient.** { *; }
-# -dontwarn com.android.billingclient.**
+# Google Mobile Ads and Play Billing. Both are reflected into by their SDKs, so
+# R8 must not rename or strip them.
+-keep class com.google.android.gms.ads.** { *; }
+-dontwarn com.google.android.gms.ads.**
+
+-keep class com.android.billingclient.** { *; }
+-dontwarn com.android.billingclient.**

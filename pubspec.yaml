@@ -32,6 +32,8 @@ dependencies:
 
   # Used for @immutable on the engine's value types.
   meta: ^1.17.0
+  in_app_purchase: ^3.3.0
+  google_mobile_ads: ^9.0.0
 
 dev_dependencies:
   flutter_test:
