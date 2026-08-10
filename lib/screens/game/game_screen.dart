@@ -17,6 +17,7 @@ import '../../services/service_locator.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/game_ui.dart';
 import '../../widgets/currency_pill.dart';
 import '../shop/shop_screen.dart';
 import 'game_over_sheet.dart';
@@ -36,26 +37,24 @@ class GameScreen extends StatefulWidget {
     transitionDuration: AppDurations.screenTransition,
     reverseTransitionDuration: AppDurations.fast,
     pageBuilder: (_, _, _) => const GameScreen(),
-    transitionsBuilder:
-        (_, Animation<double> animation, _, Widget child) {
-          return FadeTransition(
-            opacity: animation,
-            child: ScaleTransition(
-              scale: Tween<double>(begin: 0.96, end: 1).animate(
-                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-              ),
-              child: child,
-            ),
-          );
-        },
+    transitionsBuilder: (_, Animation<double> animation, _, Widget child) {
+      return FadeTransition(
+        opacity: animation,
+        child: ScaleTransition(
+          scale: Tween<double>(begin: 0.96, end: 1).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+          ),
+          child: child,
+        ),
+      );
+    },
   );
 
   @override
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen>
-    with TickerProviderStateMixin {
+class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   late final AppServices _services;
   late final GameController _controller;
   late final BoardFxGame _fx;
@@ -271,11 +270,9 @@ class _GameScreenState extends State<GameScreen>
     _controller.finishGame();
     if (!mounted) return;
 
-    final SummaryChoice choice = await Navigator.of(context).push<SummaryChoice>(
-          GameSummaryScreen.route(
-            controller: _controller,
-            services: _services,
-          ),
+    final SummaryChoice choice =
+        await Navigator.of(context).push<SummaryChoice>(
+          GameSummaryScreen.route(controller: _controller, services: _services),
         ) ??
         SummaryChoice.home;
 
@@ -317,10 +314,7 @@ class _GameScreenState extends State<GameScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
-        ),
+      body: GameBackground(
         child: SafeArea(
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
@@ -382,10 +376,7 @@ class _GameScreenState extends State<GameScreen>
       cellSize: side / Board.defaultSize,
       size: Board.defaultSize,
     );
-    _boardOrigin = Offset(
-      (width - _geometry.extent) / 2,
-      _hudHeight + _topGap,
-    );
+    _boardOrigin = Offset((width - _geometry.extent) / 2, _hudHeight + _topGap);
   }
 
   Widget _buildBody(BoxConstraints constraints) {
@@ -483,9 +474,7 @@ class _GameScreenState extends State<GameScreen>
             ),
           ),
           Positioned.fill(
-            child: IgnorePointer(
-              child: GameWidget<BoardFxGame>(game: _fx),
-            ),
+            child: IgnorePointer(child: GameWidget<BoardFxGame>(game: _fx)),
           ),
           Positioned.fill(
             child: FloatingScoreLayer(
@@ -557,8 +546,7 @@ class _GameScreenState extends State<GameScreen>
           // A fixed tray cell size keeps relative piece sizes honest — a big
           // piece looks big, which is information the player needs. Five cells
           // is the widest shape in the catalogue, so size to that.
-          final double slotWidth =
-              (_geometry.extent - AppSpacing.xs * 6) / 3;
+          final double slotWidth = (_geometry.extent - AppSpacing.xs * 6) / 3;
           final double trayCell = math.min(
             _geometry.cellSize * 0.58,
             slotWidth / 5.4,
@@ -631,11 +619,7 @@ class GameSheetHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.xl),
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: AppTextStyles.headline,
-        ),
+        Text(title, textAlign: TextAlign.center, style: AppTextStyles.headline),
         if (subtitle != null) ...<Widget>[
           const SizedBox(height: AppSpacing.sm),
           Text(
@@ -668,9 +652,5 @@ class SheetCoinBalance extends StatelessWidget {
 /// Small helper so sheets can show a hint line consistently.
 Widget sheetHint(String text) => Padding(
   padding: const EdgeInsets.only(top: AppSpacing.sm),
-  child: Text(
-    text,
-    textAlign: TextAlign.center,
-    style: AppTextStyles.caption,
-  ),
+  child: Text(text, textAlign: TextAlign.center, style: AppTextStyles.caption),
 );

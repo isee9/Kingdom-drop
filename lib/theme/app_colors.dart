@@ -5,118 +5,147 @@ import 'package:flutter/material.dart';
 /// Nothing in the app should construct a raw [Color] inline. If a new shade is
 /// needed, add it here so the palette stays coherent and can be re-skinned.
 ///
-/// The palette is an original "twilight fantasy" scheme: deep indigo/violet
-/// grounds, warm gold for reward moments, and a saturated but not neon set of
-/// block colours chosen to stay distinguishable for the most common forms of
-/// colour vision deficiency (they differ in lightness as well as hue).
+/// The scheme is "royal night": deep navy grounds, warm gold for anything the
+/// player earns or presses, and a saturated block set. Golds are used sparingly
+/// — on frames, currency and calls to action — because gold everywhere reads as
+/// cheap rather than premium.
+///
+/// Block colours differ in lightness as well as hue, so they stay tellable
+/// apart for the most common forms of colour vision deficiency.
 abstract final class AppColors {
   // ---------------------------------------------------------------- brand
-  static const Color primary = Color(0xFF6C5CE7);
-  static const Color primaryDark = Color(0xFF4B3FC4);
-  static const Color primaryLight = Color(0xFF9B8CFF);
+  static const Color primary = Color(0xFF3D6FD4);
+  static const Color primaryDark = Color(0xFF23448F);
+  static const Color primaryLight = Color(0xFF6E9BFF);
 
   static const Color secondary = Color(0xFF22C3A6);
-  static const Color secondaryDark = Color(0xFF14907B);
+  static const Color secondaryDark = Color(0xFF12907B);
 
   // ------------------------------------------------------------ surfaces
-  /// Deepest background, used behind everything.
-  static const Color background = Color(0xFF15122B);
-  static const Color backgroundAlt = Color(0xFF1E1940);
+  /// Deepest background, behind everything.
+  static const Color background = Color(0xFF0A142E);
+  static const Color backgroundAlt = Color(0xFF122246);
 
-  /// Raised cards and panels.
-  static const Color surface = Color(0xFF262048);
-  static const Color surfaceHigh = Color(0xFF322A5C);
-  static const Color surfaceLow = Color(0xFF1A1636);
+  /// Raised panels.
+  static const Color surface = Color(0xFF16294F);
+  static const Color surfaceHigh = Color(0xFF1F3868);
+  static const Color surfaceLow = Color(0xFF0F1D3C);
 
-  /// Hairline dividers and card borders.
-  static const Color border = Color(0x1AFFFFFF);
-  static const Color borderStrong = Color(0x33FFFFFF);
+  /// Recessed wells: board backing, inset rows.
+  static const Color surfaceSunken = Color(0xFF091531);
+
+  static const Color border = Color(0x1FFFFFFF);
+  static const Color borderStrong = Color(0x3DFFFFFF);
 
   // ------------------------------------------------------------------ ink
-  static const Color textPrimary = Color(0xFFF6F4FF);
-  static const Color textSecondary = Color(0xFFB9B2DC);
-  static const Color textMuted = Color(0xFF8078A8);
-  static const Color textOnGold = Color(0xFF4A2F00);
+  static const Color textPrimary = Color(0xFFFFFFFF);
+  static const Color textSecondary = Color(0xFFB6C6E8);
+  static const Color textMuted = Color(0xFF7B8DB8);
+  static const Color textOnGold = Color(0xFF5A3606);
+
+  /// Outline drawn around display text, which is what gives casual-game
+  /// lettering its punch against a busy background.
+  static const Color textOutline = Color(0xFF06102A);
 
   // ------------------------------------------------------------- semantic
-  static const Color success = Color(0xFF3DD68C);
-  static const Color warning = Color(0xFFFFB443);
-  static const Color danger = Color(0xFFFF5C7A);
-  static const Color info = Color(0xFF56A9FF);
+  static const Color success = Color(0xFF43D17A);
+  static const Color successDark = Color(0xFF1E9B4F);
+  static const Color warning = Color(0xFFFFB020);
+  static const Color danger = Color(0xFFF2534D);
+  static const Color dangerDark = Color(0xFFB32A28);
+  static const Color info = Color(0xFF3FA9F5);
 
   // ------------------------------------------------------------ currency
-  static const Color gold = Color(0xFFFFC53D);
-  static const Color goldDark = Color(0xFFE09B00);
-  static const Color crown = Color(0xFFFF9F1C);
-  static const Color crownDark = Color(0xFFD97706);
+  static const Color gold = Color(0xFFFFC33A);
+  static const Color goldLight = Color(0xFFFFE9A0);
+  static const Color goldDark = Color(0xFFC9820A);
+
+  /// Deep bronze used for the outline under gold, so gold reads as metal
+  /// rather than as flat yellow.
+  static const Color goldEdge = Color(0xFF7A4B05);
+
+  static const Color crown = Color(0xFFFFC33A);
+  static const Color crownDark = Color(0xFFC9820A);
 
   // --------------------------------------------------------------- board
   /// Empty cell fill.
-  static const Color boardCell = Color(0xFF2C2555);
+  static const Color boardCell = Color(0xFF1B2F58);
 
   /// Board backing plate behind the cells.
-  static const Color boardBase = Color(0xFF201B42);
+  static const Color boardBase = Color(0xFF0C1937);
 
-  /// Divider drawn between the 3x3 regions.
-  static const Color boardRegionLine = Color(0x3DFFFFFF);
+  /// Frame around the board.
+  static const Color boardFrame = Color(0xFF2B4880);
 
   /// Ghost preview for a legal drop.
-  static const Color previewValid = Color(0x8859F0B0);
+  static const Color previewValid = Color(0x8843D17A);
 
   /// Ghost preview for an illegal drop.
-  static const Color previewInvalid = Color(0x99FF5C7A);
+  static const Color previewInvalid = Color(0x99F2534D);
 
-  /// Highlight for rows/columns/regions that will clear on this drop.
-  static const Color previewClear = Color(0x66FFC53D);
+  /// Highlight for lines that will clear on this drop.
+  static const Color previewClear = Color(0x70FFC33A);
 
-  /// Block palette. Shapes pick one of these by index so a placed block keeps
-  /// its colour for the life of the board.
+  /// Block palette. A shape keeps its colour for the life of the board.
   static const List<Color> blocks = <Color>[
-    Color(0xFF7C6BFF), // violet
-    Color(0xFF2FC6F5), // sky
-    Color(0xFF3DD68C), // mint
-    Color(0xFFFFC53D), // gold
-    Color(0xFFFF7A5C), // coral
-    Color(0xFFFF6BC1), // orchid
+    Color(0xFF7B5CFF), // violet
+    Color(0xFF2FA8F5), // sky
+    Color(0xFF3FCF63), // leaf
+    Color(0xFFFFC02E), // gold
+    Color(0xFFFF6B4A), // ember
+    Color(0xFFFF5C9E), // rose
   ];
 
-  /// Slightly darker companion used for the bevel under each block face.
-  static List<Color> get blockShadows =>
-      blocks.map(_darken).toList(growable: false);
-
-  static Color _darken(Color c) {
+  static Color _shift(Color c, double amount) {
     final HSLColor hsl = HSLColor.fromColor(c);
-    return hsl.withLightness((hsl.lightness - 0.18).clamp(0.0, 1.0)).toColor();
+    return hsl
+        .withLightness((hsl.lightness + amount).clamp(0.0, 1.0))
+        .toColor();
   }
+
+  /// Lighter face used for the top of a block's bevel.
+  static Color blockTop(int index) =>
+      _shift(blocks[index % blocks.length], 0.14);
+
+  /// Darker face used for the bottom lip of a block.
+  static Color blockEdge(int index) =>
+      _shift(blocks[index % blocks.length], -0.20);
 
   // ------------------------------------------------------------ gradients
   static const LinearGradient backgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: <Color>[Color(0xFF241E4E), AppColors.background],
+    colors: <Color>[Color(0xFF17305F), Color(0xFF0A142E)],
   );
 
   static const LinearGradient primaryGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: <Color>[Color(0xFF8B7BFF), AppColors.primaryDark],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: <Color>[Color(0xFF5C8DEE), AppColors.primaryDark],
   );
 
   static const LinearGradient goldGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: <Color>[Color(0xFFFFDE7A), AppColors.goldDark],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: <Color>[Color(0xFFFFE07A), Color(0xFFF0A81B)],
   );
 
   static const LinearGradient playGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: <Color>[Color(0xFF3DD68C), Color(0xFF12A06E)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: <Color>[Color(0xFF6BE895), Color(0xFF1E9B4F)],
   );
 
   static const LinearGradient dangerGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: <Color>[Color(0xFFFF7D95), Color(0xFFD32F4E)],
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: <Color>[Color(0xFFFF8A72), Color(0xFFB32A28)],
+  );
+
+  /// Panel interior: a subtle vertical lift so a card is not a flat rectangle.
+  static const LinearGradient panelGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: <Color>[Color(0xFF1E3767), Color(0xFF13254A)],
   );
 }

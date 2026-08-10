@@ -172,11 +172,8 @@ class _DebugMenuState extends State<_DebugMenu> {
                   for (final ChestTier tier in ChestTier.values)
                     _DebugButton(
                       label: tier.displayName,
-                      onTap: () => showChestSheet(
-                        context,
-                        tier: tier,
-                        services: _s,
-                      ),
+                      onTap: () =>
+                          showChestSheet(context, tier: tier, services: _s),
                     ),
                 ],
               ),
@@ -338,8 +335,10 @@ class _AnalyticsLog extends StatelessWidget {
       );
     }
 
-    final List<AnalyticsRecord> records =
-        (analytics as DebugAnalyticsService).records.take(15).toList();
+    final List<AnalyticsRecord> records = (analytics as DebugAnalyticsService)
+        .records
+        .take(15)
+        .toList();
 
     if (records.isEmpty) {
       return Text('No events yet.', style: AppTextStyles.caption);

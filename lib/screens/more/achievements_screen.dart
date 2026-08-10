@@ -7,6 +7,7 @@ import '../../services/service_locator.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/game_ui.dart';
 import '../../widgets/game_icons.dart';
 import '../../widgets/kd_card.dart';
 
@@ -46,24 +47,25 @@ class _AchievementsScreenState extends State<AchievementsScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: Text('ACHIEVEMENTS', style: AppTextStyles.headline),
+        title: StrokedText('ACHIEVEMENTS', style: AppTextStyles.headline),
       ),
       extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
-        ),
+      body: GameBackground(
         child: SafeArea(
           child: PlayerBuilder(
             builder: (BuildContext context, PlayerService player) {
-              final List<Achievement> sorted = <Achievement>[
-                ...AchievementCatalog.all,
-              ]..sort((Achievement a, Achievement b) {
-                  final bool au = player.data.achievementProgress(a.id).unlocked;
-                  final bool bu = player.data.achievementProgress(b.id).unlocked;
-                  if (au == bu) return 0;
-                  return au ? 1 : -1; // Unlocked ones drop to the bottom.
-                });
+              final List<Achievement> sorted =
+                  <Achievement>[...AchievementCatalog.all]
+                    ..sort((Achievement a, Achievement b) {
+                      final bool au = player.data
+                          .achievementProgress(a.id)
+                          .unlocked;
+                      final bool bu = player.data
+                          .achievementProgress(b.id)
+                          .unlocked;
+                      if (au == bu) return 0;
+                      return au ? 1 : -1; // Unlocked ones drop to the bottom.
+                    });
 
               return ListView(
                 padding: const EdgeInsets.fromLTRB(
@@ -102,8 +104,10 @@ class _AchievementRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool unlocked = progress.unlocked;
-    final double fraction =
-        (progress.progress / achievement.target).clamp(0.0, 1.0);
+    final double fraction = (progress.progress / achievement.target).clamp(
+      0.0,
+      1.0,
+    );
 
     return KdCard(
       padding: const EdgeInsets.all(AppSpacing.md),

@@ -20,17 +20,11 @@ class BoardGeometry {
 
   double get extent => cellSize * size;
 
-  Rect cellRect(int row, int col) => Rect.fromLTWH(
-    col * cellSize,
-    row * cellSize,
-    cellSize,
-    cellSize,
-  );
+  Rect cellRect(int row, int col) =>
+      Rect.fromLTWH(col * cellSize, row * cellSize, cellSize, cellSize);
 
-  Offset cellCentre(int row, int col) => Offset(
-    (col + 0.5) * cellSize,
-    (row + 0.5) * cellSize,
-  );
+  Offset cellCentre(int row, int col) =>
+      Offset((col + 0.5) * cellSize, (row + 0.5) * cellSize);
 
   /// Board-local pixel offset to the cell containing it. May be out of range.
   Cell cellAt(Offset local) =>
@@ -63,10 +57,7 @@ class BoardView extends StatelessWidget {
             controller: controller,
             geometry: geometry,
             placeAnimation: placeAnimation,
-            repaint: Listenable.merge(<Listenable>[
-              controller,
-              placeAnimation,
-            ]),
+            repaint: Listenable.merge(<Listenable>[controller, placeAnimation]),
           ),
           isComplex: true,
         ),
@@ -99,19 +90,48 @@ class _BoardPainter extends CustomPainter {
     _paintBoosterTargeting(canvas, board);
   }
 
+  /// The board sits in a frame like the rest of the UI, with a sunken well so
+  /// the blocks read as sitting inside something rather than floating.
   void _paintBase(Canvas canvas, Size size) {
-    final RRect base = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      const Radius.circular(AppRadius.lg),
+    final Rect rect = Offset.zero & size;
+    const double frame = 5;
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        rect.inflate(frame),
+        const Radius.circular(AppRadius.lg + frame),
+      ),
+      Paint()..color = AppColors.textOutline,
     );
-    canvas.drawRRect(base, Paint()..color = AppColors.boardBase);
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        rect.inflate(frame - 2),
+        const Radius.circular(AppRadius.lg + frame),
+      ),
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: <Color>[Color(0xFF3E5F9E), AppColors.boardFrame],
+        ).createShader(rect),
+    );
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, const Radius.circular(AppRadius.lg)),
+      Paint()
+        ..shader = const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: <Color>[Color(0xFF0A1731), Color(0xFF122A52)],
+        ).createShader(rect),
+    );
   }
 
   /// Tints the four 3x3 quadrants so the region rule is visible at a glance,
   /// and leaves the central cross untinted so it reads as separate.
   void _paintRegionPlates(Canvas canvas) {
-    final Paint plate = Paint()
-      ..color = Colors.white.withValues(alpha: 0.035);
+    final Paint plate = Paint()..color = Colors.white.withValues(alpha: 0.055);
 
     for (final BoardRegion region in Board.regions) {
       final Rect rect = Rect.fromLTWH(
@@ -165,9 +185,9 @@ class _BoardPainter extends CustomPainter {
 
     final Paint glow = Paint()..color = AppColors.previewClear;
     for (final Cell cell in cells) {
-      final Rect rect = geometry.cellRect(cell.row, cell.col).deflate(
-        geometry.cellSize * 0.03,
-      );
+      final Rect rect = geometry
+          .cellRect(cell.row, cell.col)
+          .deflate(geometry.cellSize * 0.03);
       canvas.drawRRect(
         RRect.fromRectAndRadius(rect, const Radius.circular(AppRadius.sm)),
         glow,

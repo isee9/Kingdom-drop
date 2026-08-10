@@ -156,9 +156,7 @@ class DailyService {
   /// Seeded by the date so every device gets the same challenge on a given day
   /// and it cannot be re-rolled by restarting the app.
   void _regenerate(DailyChallengeState state, DayKey day) {
-    final Random seeded = Random(
-      day.year * 10000 + day.month * 100 + day.day,
-    );
+    final Random seeded = Random(day.year * 10000 + day.month * 100 + day.day);
     final ChallengeType type =
         ChallengeType.values[seeded.nextInt(ChallengeType.values.length)];
 

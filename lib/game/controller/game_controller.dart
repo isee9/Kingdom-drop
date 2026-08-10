@@ -154,12 +154,10 @@ class GameController extends ChangeNotifier {
   final List<ClearEffect> _clearEffects = <ClearEffect>[];
   final List<FloatingScore> _floatingScores = <FloatingScore>[];
 
-  List<ClearEffect> get clearEffects => List<ClearEffect>.unmodifiable(
-    _clearEffects,
-  );
-  List<FloatingScore> get floatingScores => List<FloatingScore>.unmodifiable(
-    _floatingScores,
-  );
+  List<ClearEffect> get clearEffects =>
+      List<ClearEffect>.unmodifiable(_clearEffects);
+  List<FloatingScore> get floatingScores =>
+      List<FloatingScore>.unmodifiable(_floatingScores);
 
   /// Cells that just landed, so they can pop in.
   Set<Cell> _justPlaced = <Cell>{};
@@ -265,10 +263,10 @@ class GameController extends ChangeNotifier {
       'booster': type.name,
     });
 
-    _registerClearEffect(
-      <Cell>{...result.affectedCells, ...result.clearedCells},
-      max(1, result.clears.length),
-    );
+    _registerClearEffect(<Cell>{
+      ...result.affectedCells,
+      ...result.clearedCells,
+    }, max(1, result.clears.length));
     _haptics.clear(max(1, result.clears.length));
     _audio.playClear(max(1, result.clears.length));
     if (result.clears.isNotEmpty) _shake(result.clears.length);
@@ -350,7 +348,11 @@ class GameController extends ChangeNotifier {
       return false;
     }
 
-    final PlacementResult result = engine.place(pieceId, origin.row, origin.col);
+    final PlacementResult result = engine.place(
+      pieceId,
+      origin.row,
+      origin.col,
+    );
     _cancelDrag(notify: false);
 
     if (!result.accepted) {
@@ -444,8 +446,7 @@ class GameController extends ChangeNotifier {
     // Snapshot the colours before the board forgets them. The engine has
     // already emptied these cells, so fall back to the palette by position.
     final Map<Cell, int> colors = <Cell, int>{
-      for (final Cell cell in cells)
-        cell: (cell.row + cell.col) % 6,
+      for (final Cell cell in cells) cell: (cell.row + cell.col) % 6,
     };
     _clearEffects.add(
       ClearEffect(cells: cells, groupCount: groupCount, colors: colors),

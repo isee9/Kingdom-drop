@@ -10,6 +10,7 @@ import '../../services/service_locator.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/game_ui.dart';
 import '../../widgets/currency_pill.dart';
 import '../../widgets/game_icons.dart';
 import '../../widgets/kd_button.dart';
@@ -24,9 +25,8 @@ import '../../widgets/kd_card.dart';
 class ShopScreen extends StatefulWidget {
   const ShopScreen({super.key});
 
-  static Route<void> route() => MaterialPageRoute<void>(
-    builder: (_) => const ShopScreen(),
-  );
+  static Route<void> route() =>
+      MaterialPageRoute<void>(builder: (_) => const ShopScreen());
 
   @override
   State<ShopScreen> createState() => _ShopScreenState();
@@ -62,9 +62,9 @@ class _ShopScreenState extends State<ShopScreen> {
     };
 
     if (result.isSuccess) services.haptics.reward();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _buyBooster(BoosterType type) {
@@ -86,10 +86,7 @@ class _ShopScreenState extends State<ShopScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
-        ),
+      body: GameBackground(
         child: SafeArea(
           child: PlayerBuilder(
             builder: (BuildContext context, player) {
@@ -111,7 +108,8 @@ class _ShopScreenState extends State<ShopScreen> {
                           const KdSectionHeader(title: 'Limited offer'),
                           _StarterPackCard(
                             remaining: player.starterPackRemaining(),
-                            busy: _busyProductId == ProductCatalog.starterPackId,
+                            busy:
+                                _busyProductId == ProductCatalog.starterPackId,
                             onBuy: () => _buy(ProductCatalog.starterPackId),
                           ),
                           const SizedBox(height: AppSpacing.xl),
@@ -197,7 +195,7 @@ class _ShopScreenState extends State<ShopScreen> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           const SizedBox(width: AppSpacing.md),
-          Expanded(child: Text('SHOP', style: AppTextStyles.headline)),
+          Expanded(child: StrokedText('SHOP', style: AppTextStyles.headline)),
           CurrencyPill(
             kind: CurrencyKind.crowns,
             amount: crowns,
@@ -313,10 +311,13 @@ class _PackItem extends StatelessWidget {
         children: <Widget>[
           icon,
           const SizedBox(height: AppSpacing.xs),
-          Text(label, style: AppTextStyles.caption.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-          )),
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
         ],
       ),
     );

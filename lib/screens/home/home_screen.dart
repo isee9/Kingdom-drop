@@ -10,6 +10,7 @@ import '../../services/service_locator.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/game_ui.dart';
 import '../../widgets/currency_pill.dart';
 import '../../widgets/kd_button.dart';
 import '../../widgets/kd_card.dart';
@@ -87,10 +88,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
-        ),
+      body: GameBackground(
         child: SafeArea(
           child: PlayerBuilder(
             builder: (BuildContext context, PlayerService player) {
@@ -158,11 +156,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   }
 
   void _openKingdom() {
-    Navigator.of(context)
-        .push(KingdomScreen.route())
-        .then((_) {
-          if (mounted) setState(() {});
-        });
+    Navigator.of(context).push(KingdomScreen.route()).then((_) {
+      if (mounted) setState(() {});
+    });
   }
 
   void _openShop() {
@@ -195,10 +191,7 @@ class _Header extends StatelessWidget {
       ),
       child: Row(
         children: <Widget>[
-          _LevelBadge(
-            level: player.level,
-            progress: player.levelProgress,
-          ),
+          _LevelBadge(level: player.level, progress: player.levelProgress),
           const Spacer(),
           CurrencyPill(
             kind: CurrencyKind.crowns,
@@ -294,7 +287,10 @@ class _KingdomHero extends StatelessWidget {
       onTap: onTap,
       child: Column(
         children: <Widget>[
-          KingdomView(kingdom: kingdom, upgradesDone: upgradesDone),
+          GamePanel(
+            padding: const EdgeInsets.all(5),
+            child: KingdomView(kingdom: kingdom, upgradesDone: upgradesDone),
+          ),
           const SizedBox(height: AppSpacing.md),
           Row(
             children: <Widget>[
@@ -302,9 +298,12 @@ class _KingdomHero extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(
+                    StrokedText(
                       kingdom.name.toUpperCase(),
+                      textAlign: TextAlign.left,
+                      strokeWidth: 3.5,
                       style: AppTextStyles.title.copyWith(letterSpacing: 1),
+                      fillGradient: AppColors.goldGradient,
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -488,10 +487,7 @@ class _BestScoreRow extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(child: Text('Best score', style: AppTextStyles.body)),
-          Text(
-            Formatters.number(bestScore),
-            style: AppTextStyles.title,
-          ),
+          Text(Formatters.number(bestScore), style: AppTextStyles.title),
         ],
       ),
     );

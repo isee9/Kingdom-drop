@@ -45,9 +45,7 @@ abstract final class AppConfig {
   // ------------------------------------------------------------------ ads
   /// Master switch. Stays false until real AdMob units are supplied, which
   /// keeps [AdService] in mock mode where "watch ad" resolves instantly.
-  static const bool adsEnabled = bool.fromEnvironment(
-    'ADS_ENABLED',
-  );
+  static const bool adsEnabled = bool.fromEnvironment('ADS_ENABLED');
 
   /// Google's public test IDs. Safe to leave as the default — they only ever
   /// serve test creatives. Never ship a real ID hardcoded here.
@@ -71,9 +69,7 @@ abstract final class AppConfig {
   // ------------------------------------------------------------------ IAP
   /// When false, [PurchaseService] grants entitlements locally without touching
   /// the store, so the whole economy is testable offline.
-  static const bool billingEnabled = bool.fromEnvironment(
-    'BILLING_ENABLED',
-  );
+  static const bool billingEnabled = bool.fromEnvironment('BILLING_ENABLED');
 
   // ------------------------------------------------------------ analytics
   static const bool analyticsEnabled = bool.fromEnvironment(
@@ -87,9 +83,7 @@ abstract final class AppConfig {
 
   /// Lets a profile build expose the debug menu for capturing store
   /// screenshots: `flutter run --profile --dart-define=FORCE_DEBUG_MENU=true`.
-  static const bool _forceDebugMenu = bool.fromEnvironment(
-    'FORCE_DEBUG_MENU',
-  );
+  static const bool _forceDebugMenu = bool.fromEnvironment('FORCE_DEBUG_MENU');
 
   /// Interstitials are suppressed below this many completed games so a new
   /// player's first sessions are uninterrupted.

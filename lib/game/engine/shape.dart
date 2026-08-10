@@ -125,10 +125,26 @@ abstract final class ShapeCatalog {
     Shape.fromPattern(id: 'v3', pattern: <String>['X', 'X', 'X'], weight: 80),
 
     // ------------------------------------------ 3 blocks — corners (L tromino)
-    Shape.fromPattern(id: 'corner_tl', pattern: <String>['XX', 'X.'], weight: 62),
-    Shape.fromPattern(id: 'corner_tr', pattern: <String>['XX', '.X'], weight: 62),
-    Shape.fromPattern(id: 'corner_bl', pattern: <String>['X.', 'XX'], weight: 62),
-    Shape.fromPattern(id: 'corner_br', pattern: <String>['.X', 'XX'], weight: 62),
+    Shape.fromPattern(
+      id: 'corner_tl',
+      pattern: <String>['XX', 'X.'],
+      weight: 62,
+    ),
+    Shape.fromPattern(
+      id: 'corner_tr',
+      pattern: <String>['XX', '.X'],
+      weight: 62,
+    ),
+    Shape.fromPattern(
+      id: 'corner_bl',
+      pattern: <String>['X.', 'XX'],
+      weight: 62,
+    ),
+    Shape.fromPattern(
+      id: 'corner_br',
+      pattern: <String>['.X', 'XX'],
+      weight: 62,
+    ),
 
     // --------------------------------------------------- 4 blocks — square
     Shape.fromPattern(id: 'square2', pattern: <String>['XX', 'XX'], weight: 55),
@@ -143,25 +159,61 @@ abstract final class ShapeCatalog {
 
     // ------------------------------------------------------- 4 blocks — T
     Shape.fromPattern(id: 't_up', pattern: <String>['XXX', '.X.'], weight: 30),
-    Shape.fromPattern(id: 't_down', pattern: <String>['.X.', 'XXX'], weight: 30),
-    Shape.fromPattern(id: 't_left', pattern: <String>['.X', 'XX', '.X'], weight: 30),
-    Shape.fromPattern(id: 't_right', pattern: <String>['X.', 'XX', 'X.'], weight: 30),
+    Shape.fromPattern(
+      id: 't_down',
+      pattern: <String>['.X.', 'XXX'],
+      weight: 30,
+    ),
+    Shape.fromPattern(
+      id: 't_left',
+      pattern: <String>['.X', 'XX', '.X'],
+      weight: 30,
+    ),
+    Shape.fromPattern(
+      id: 't_right',
+      pattern: <String>['X.', 'XX', 'X.'],
+      weight: 30,
+    ),
 
     // -------------------------------------------------- 4 blocks — L and J
-    Shape.fromPattern(id: 'l_0', pattern: <String>['X.', 'X.', 'XX'], weight: 26),
+    Shape.fromPattern(
+      id: 'l_0',
+      pattern: <String>['X.', 'X.', 'XX'],
+      weight: 26,
+    ),
     Shape.fromPattern(id: 'l_1', pattern: <String>['XXX', 'X..'], weight: 26),
-    Shape.fromPattern(id: 'l_2', pattern: <String>['XX', '.X', '.X'], weight: 26),
+    Shape.fromPattern(
+      id: 'l_2',
+      pattern: <String>['XX', '.X', '.X'],
+      weight: 26,
+    ),
     Shape.fromPattern(id: 'l_3', pattern: <String>['..X', 'XXX'], weight: 26),
-    Shape.fromPattern(id: 'j_0', pattern: <String>['.X', '.X', 'XX'], weight: 26),
+    Shape.fromPattern(
+      id: 'j_0',
+      pattern: <String>['.X', '.X', 'XX'],
+      weight: 26,
+    ),
     Shape.fromPattern(id: 'j_1', pattern: <String>['X..', 'XXX'], weight: 26),
-    Shape.fromPattern(id: 'j_2', pattern: <String>['XX', 'X.', 'X.'], weight: 26),
+    Shape.fromPattern(
+      id: 'j_2',
+      pattern: <String>['XX', 'X.', 'X.'],
+      weight: 26,
+    ),
     Shape.fromPattern(id: 'j_3', pattern: <String>['XXX', '..X'], weight: 26),
 
     // -------------------------------------------------- 4 blocks — S and Z
     Shape.fromPattern(id: 's_h', pattern: <String>['.XX', 'XX.'], weight: 18),
-    Shape.fromPattern(id: 's_v', pattern: <String>['X.', 'XX', '.X'], weight: 18),
+    Shape.fromPattern(
+      id: 's_v',
+      pattern: <String>['X.', 'XX', '.X'],
+      weight: 18,
+    ),
     Shape.fromPattern(id: 'z_h', pattern: <String>['XX.', '.XX'], weight: 18),
-    Shape.fromPattern(id: 'z_v', pattern: <String>['.X', 'XX', 'X.'], weight: 18),
+    Shape.fromPattern(
+      id: 'z_v',
+      pattern: <String>['.X', 'XX', 'X.'],
+      weight: 18,
+    ),
 
     // -------------------------------------------------- 5 blocks — long lines
     Shape.fromPattern(id: 'h5', pattern: <String>['XXXXX'], weight: 14),
@@ -172,7 +224,11 @@ abstract final class ShapeCatalog {
     ),
 
     // ------------------------------------------------ 6 blocks — rectangles
-    Shape.fromPattern(id: 'rect23', pattern: <String>['XXX', 'XXX'], weight: 12),
+    Shape.fromPattern(
+      id: 'rect23',
+      pattern: <String>['XXX', 'XXX'],
+      weight: 12,
+    ),
     Shape.fromPattern(
       id: 'rect32',
       pattern: <String>['XX', 'XX', 'XX'],

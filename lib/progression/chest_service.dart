@@ -44,8 +44,7 @@ class ChestService {
 
   ChestReward open(ChestTier tier) {
     final ChestConfig config =
-        EconomyConfig.chests[tier.configKey] ??
-        EconomyConfig.chests['common']!;
+        EconomyConfig.chests[tier.configKey] ?? EconomyConfig.chests['common']!;
 
     final int coins = _between(config.minCoins, config.maxCoins);
     final int crowns = _between(config.minCrowns, config.maxCrowns);

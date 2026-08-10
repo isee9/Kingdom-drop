@@ -6,6 +6,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/kd_button.dart';
+import '../../widgets/game_ui.dart';
 import 'kingdom_view.dart';
 
 /// The celebration shown when the last upgrade of a kingdom lands.
@@ -50,8 +51,7 @@ class _KingdomCompleteSheetState extends State<_KingdomCompleteSheet>
 
   @override
   Widget build(BuildContext context) {
-    final bool isLast =
-        widget.kingdom.index >= KingdomConfig.kingdomCount - 1;
+    final bool isLast = widget.kingdom.index >= KingdomConfig.kingdomCount - 1;
 
     return Container(
       padding: EdgeInsets.only(
@@ -72,10 +72,11 @@ class _KingdomCompleteSheetState extends State<_KingdomCompleteSheet>
               parent: _controller,
               curve: const Interval(0, 0.5, curve: Curves.easeOutBack),
             ),
-            child: Text(
-              'KINGDOM COMPLETE',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.headline.copyWith(color: AppColors.gold),
+            child: const RibbonBanner(
+              text: 'KINGDOM COMPLETE',
+              color: AppColors.gold,
+              edgeColor: AppColors.goldDark,
+              width: 300,
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -84,10 +85,7 @@ class _KingdomCompleteSheetState extends State<_KingdomCompleteSheet>
             upgradesDone: widget.kingdom.upgradeCount,
           ),
           const SizedBox(height: AppSpacing.lg),
-          Text(
-            widget.kingdom.name,
-            style: AppTextStyles.title,
-          ),
+          Text(widget.kingdom.name, style: AppTextStyles.title),
           const SizedBox(height: AppSpacing.xs),
           Text(
             isLast

@@ -238,7 +238,11 @@ class PlayerService extends ChangeNotifier {
   }
 
   /// Applies the end-of-run payout.
-  void grantRunRewards({required int crowns, required int coins, required int xp}) {
+  void grantRunRewards({
+    required int crowns,
+    required int coins,
+    required int xp,
+  }) {
     if (crowns > 0) _data.crowns += crowns;
     if (coins > 0) _data.coins += coins;
     notifyListeners();
@@ -455,7 +459,12 @@ class PlayerService extends ChangeNotifier {
   }
 }
 
-enum UpgradeOutcome { bought, kingdomComplete, notEnoughCrowns, alreadyComplete }
+enum UpgradeOutcome {
+  bought,
+  kingdomComplete,
+  notEnoughCrowns,
+  alreadyComplete,
+}
 
 /// Local `unawaited` so this file does not need dart:async just for it.
 void unawaited(Future<void> future) {

@@ -76,7 +76,7 @@ class KingdomLogoPainter extends CustomPainter {
           ..shader = const LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: <Color>[Color(0xFF2A1F5E), Color(0xFF150F35)],
+            colors: <Color>[Color(0xFF1B3A6B), Color(0xFF0A142E)],
           ).createShader(rect),
       );
     }
@@ -155,4 +155,111 @@ class KingdomLogoPainter extends CustomPainter {
   bool shouldRepaint(KingdomLogoPainter oldDelegate) =>
       oldDelegate.withBackground != withBackground ||
       oldDelegate.marginFraction != marginFraction;
+}
+
+/// The wordmark: three-dimensional carved lettering.
+///
+/// The depth is faked the way sign painters fake it — the word is drawn several
+/// times, each copy stepped further down and darker, then the lit face goes on
+/// top with a metal gradient and a dark outline. Cheap, and it reads as carved
+/// metal at any size, which a plain bold font never does.
+class KingdomWordmark extends StatelessWidget {
+  const KingdomWordmark({required this.fontSize, super.key});
+
+  final double fontSize;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        _ExtrudedWord(
+          'KINGDOM',
+          fontSize: fontSize,
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: <Color>[Color(0xFFFFF0B8), Color(0xFFFFB61F)],
+          ),
+        ),
+        SizedBox(height: fontSize * 0.14),
+        _ExtrudedWord(
+          'DROP',
+          fontSize: fontSize,
+          gradient: const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: <Color>[Color(0xFFEAF2FF), Color(0xFF9FC0F5)],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _ExtrudedWord extends StatelessWidget {
+  const _ExtrudedWord(
+    this.text, {
+    required this.fontSize,
+    required this.gradient,
+  });
+
+  final String text;
+  final double fontSize;
+  final Gradient gradient;
+
+  /// How many shadow copies form the extrusion.
+  static const int _depth = 5;
+
+  @override
+  Widget build(BuildContext context) {
+    final TextStyle base = TextStyle(
+      fontSize: fontSize,
+      fontWeight: FontWeight.w900,
+      letterSpacing: fontSize * 0.06,
+      height: 1,
+    );
+
+    return Stack(
+      alignment: Alignment.center,
+      children: <Widget>[
+        // Extrusion: darker copies stepping downward.
+        for (int i = _depth; i >= 1; i--)
+          Transform.translate(
+            offset: Offset(0, i * (fontSize * 0.045)),
+            child: Text(
+              text,
+              style: base.copyWith(
+                foreground: Paint()
+                  ..style = PaintingStyle.stroke
+                  ..strokeWidth = fontSize * 0.16
+                  ..strokeJoin = StrokeJoin.round
+                  ..color = Color.lerp(
+                    const Color(0xFF6B3E02),
+                    const Color(0xFF2A1600),
+                    i / _depth,
+                  )!,
+              ),
+            ),
+          ),
+        // Dark outline around the lit face.
+        Text(
+          text,
+          style: base.copyWith(
+            foreground: Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = fontSize * 0.14
+              ..strokeJoin = StrokeJoin.round
+              ..color = const Color(0xFF2A1600),
+          ),
+        ),
+        // Lit face.
+        ShaderMask(
+          blendMode: BlendMode.srcIn,
+          shaderCallback: (Rect bounds) => gradient.createShader(bounds),
+          child: Text(text, style: base.copyWith(color: Colors.white)),
+        ),
+      ],
+    );
+  }
 }

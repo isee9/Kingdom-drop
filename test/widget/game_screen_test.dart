@@ -189,7 +189,9 @@ void main() {
     testWidgets('appears for a brand-new player', (WidgetTester tester) async {
       await pumpGame(tester, save: SaveData.fresh());
 
-      expect(find.textContaining('Drag a piece'), findsOneWidget);
+      // Display copy is drawn with StrokedText, which stacks a stroked Text
+      // under a filled one, so the same string legitimately appears twice.
+      expect(find.textContaining('Drag a piece'), findsWidgets);
     });
 
     testWidgets('does not appear once completed', (WidgetTester tester) async {

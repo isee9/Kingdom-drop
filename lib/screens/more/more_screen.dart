@@ -8,6 +8,7 @@ import '../../services/service_locator.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/game_ui.dart';
 import '../../widgets/kd_card.dart';
 import '../settings/settings_screen.dart';
 import 'achievements_screen.dart';
@@ -27,13 +28,10 @@ class MoreScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: Text('MORE', style: AppTextStyles.headline),
+        title: StrokedText('MORE', style: AppTextStyles.headline),
       ),
       extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
-        ),
+      body: GameBackground(
         child: SafeArea(
           child: PlayerBuilder(
             builder: (BuildContext context, PlayerService player) {
@@ -62,9 +60,8 @@ class MoreScreen extends StatelessWidget {
                     badge: player.unseenAchievementCount > 0
                         ? '${player.unseenAchievementCount}'
                         : null,
-                    onTap: () => Navigator.of(
-                      context,
-                    ).push(AchievementsScreen.route()),
+                    onTap: () =>
+                        Navigator.of(context).push(AchievementsScreen.route()),
                   ),
                   _MenuRow(
                     icon: Icons.card_giftcard_rounded,
@@ -124,10 +121,7 @@ class _ProfileCard extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 alignment: Alignment.center,
-                child: Text(
-                  '${player.level}',
-                  style: AppTextStyles.headline,
-                ),
+                child: Text('${player.level}', style: AppTextStyles.headline),
               ),
               const SizedBox(width: AppSpacing.lg),
               Expanded(
@@ -257,10 +251,7 @@ class _MenuRow extends StatelessWidget {
                 ),
               ),
             ),
-          const Icon(
-            Icons.chevron_right_rounded,
-            color: AppColors.textMuted,
-          ),
+          const Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
         ],
       ),
     );

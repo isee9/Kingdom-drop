@@ -27,10 +27,8 @@ Future<void> showChestSheet(
     enableDrag: false,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (BuildContext context) => _ChestSheet(
-      tier: tier,
-      services: services,
-    ),
+    builder: (BuildContext context) =>
+        _ChestSheet(tier: tier, services: services),
   );
 }
 
@@ -109,7 +107,11 @@ class _ChestSheetState extends State<_ChestSheet>
           ),
           const SizedBox(height: AppSpacing.xl),
 
-          _ChestArt(tier: widget.tier, opened: _opened, controller: _controller),
+          _ChestArt(
+            tier: widget.tier,
+            opened: _opened,
+            controller: _controller,
+          ),
 
           const SizedBox(height: AppSpacing.xl),
           AnimatedSize(
@@ -170,9 +172,10 @@ class _ChestArt extends StatelessWidget {
         final double shake = t < 0.45
             ? (0.45 - t) * 0.16 * (t * 40 % 2 < 1 ? 1 : -1)
             : 0;
-        final double scale = 1 + Curves.easeOutBack.transform(
-              (t.clamp(0.45, 1.0) - 0.45) / 0.55,
-            ) * 0.12;
+        final double scale =
+            1 +
+            Curves.easeOutBack.transform((t.clamp(0.45, 1.0) - 0.45) / 0.55) *
+                0.12;
 
         return Transform.rotate(
           angle: shake,
@@ -193,10 +196,7 @@ class _ChestArt extends StatelessWidget {
           ),
           borderRadius: BorderRadius.circular(AppRadius.lg),
           boxShadow: <BoxShadow>[
-            BoxShadow(
-              color: _accent.withValues(alpha: 0.4),
-              blurRadius: 30,
-            ),
+            BoxShadow(color: _accent.withValues(alpha: 0.4), blurRadius: 30),
           ],
         ),
         child: Icon(

@@ -185,7 +185,8 @@ class SaveData {
         json['challenge'] as Map<String, dynamic>? ?? <String, dynamic>{},
       ),
       ownedProducts: <String>{
-        for (final dynamic p in json['products'] as List<dynamic>? ?? <dynamic>[])
+        for (final dynamic p
+            in json['products'] as List<dynamic>? ?? <dynamic>[])
           p as String,
       },
       adsRemoved: json['adsRemoved'] as bool? ?? false,

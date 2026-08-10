@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
+import 'game_ui.dart';
 
 /// Rounded surface panel. The app's standard container.
 class KdCard extends StatelessWidget {
@@ -31,23 +32,27 @@ class KdCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Widget content = Container(
+    // A card with an explicit borderColor is being highlighted by its caller
+    // (the next kingdom upgrade, a claimable reward), so it gets the gold
+    // frame. Everything else gets the quieter steel one, which keeps gold
+    // meaningful rather than decorative.
+    final bool highlighted = borderColor != null;
+    final Gradient interior =
+        gradient ??
+        (color != null
+            ? LinearGradient(colors: <Color>[color!, color!])
+            : AppColors.panelGradient);
+
+    final Widget content = GamePanel(
       padding: padding,
-      decoration: BoxDecoration(
-        color: gradient == null ? (color ?? AppColors.surface) : null,
-        gradient: gradient,
-        borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: borderColor ?? AppColors.border),
-        boxShadow: elevated
-            ? <BoxShadow>[
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.28),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ]
-            : null,
-      ),
+      radius: radius,
+      interior: interior,
+      frameColor: highlighted ? AppColors.gold : AppColors.surfaceHigh,
+      frameEdgeColor: highlighted
+          ? AppColors.goldEdge
+          : AppColors.surfaceSunken,
+      frameWidth: highlighted ? 3 : 2,
+      studs: highlighted,
       child: child,
     );
 
@@ -120,10 +125,13 @@ class KdSectionHeader extends StatelessWidget {
       child: Row(
         children: <Widget>[
           Expanded(
-            child: Text(
+            child: StrokedText(
               title.toUpperCase(),
+              textAlign: TextAlign.left,
+              strokeWidth: 3,
               style: AppTextStyles.label.copyWith(
-                color: AppColors.textSecondary,
+                color: AppColors.goldLight,
+                fontSize: 15,
               ),
             ),
           ),
@@ -157,36 +165,53 @@ class KdProgressBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final double clamped = value.clamp(0.0, 1.0);
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(height),
-      child: Stack(
-        children: <Widget>[
-          Container(height: height, color: background),
-          LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) {
-              final double width = constraints.maxWidth * clamped;
-              final Widget bar = Container(
-                height: height,
-                width: width,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(height),
+        border: Border.all(color: AppColors.textOutline, width: 1.5),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(height),
+        child: Stack(
+          children: <Widget>[
+            Container(height: height, color: background),
+            LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints constraints) {
+                final double width = constraints.maxWidth * clamped;
+                final Widget bar = Container(
+                  height: height,
+                  width: width,
+                  decoration: BoxDecoration(
+                    gradient: gradient,
+                    borderRadius: BorderRadius.circular(height),
+                  ),
+                );
+                if (!animate) return bar;
+                return AnimatedContainer(
+                  duration: AppDurations.slow,
+                  curve: Curves.easeOutCubic,
+                  height: height,
+                  width: width,
+                  decoration: BoxDecoration(
+                    gradient: gradient,
+                    borderRadius: BorderRadius.circular(height),
+                  ),
+                );
+              },
+            ),
+            // A highlight along the top of the fill, so the bar looks rounded.
+            IgnorePointer(
+              child: Container(
+                height: height * 0.34,
+                margin: EdgeInsets.symmetric(horizontal: height * 0.3),
                 decoration: BoxDecoration(
-                  gradient: gradient,
+                  color: Colors.white.withValues(alpha: 0.22),
                   borderRadius: BorderRadius.circular(height),
                 ),
-              );
-              if (!animate) return bar;
-              return AnimatedContainer(
-                duration: AppDurations.slow,
-                curve: Curves.easeOutCubic,
-                height: height,
-                width: width,
-                decoration: BoxDecoration(
-                  gradient: gradient,
-                  borderRadius: BorderRadius.circular(height),
-                ),
-              );
-            },
-          ),
-        ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

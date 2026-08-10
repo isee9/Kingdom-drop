@@ -9,6 +9,7 @@ import '../../services/service_locator.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/game_ui.dart';
 import '../../widgets/currency_pill.dart';
 import '../../widgets/game_icons.dart';
 import '../../widgets/kd_button.dart';
@@ -95,11 +96,7 @@ class _KingdomScreenState extends State<KingdomScreen> {
     if (!mounted) return;
 
     // The kingdom chest is the reward for finishing a realm.
-    await showChestSheet(
-      context,
-      tier: ChestTier.kingdom,
-      services: _services,
-    );
+    await showChestSheet(context, tier: ChestTier.kingdom, services: _services);
     if (!mounted) return;
 
     final bool advanced = player.advanceToNextKingdom();
@@ -119,10 +116,7 @@ class _KingdomScreenState extends State<KingdomScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
-        ),
+      body: GameBackground(
         child: SafeArea(
           child: PlayerBuilder(
             builder: (BuildContext context, PlayerService player) {
@@ -174,8 +168,7 @@ class _KingdomScreenState extends State<KingdomScreen> {
                               upgrade: upgrade,
                               done: upgrade.index < done,
                               isNext: upgrade.index == done,
-                              affordable:
-                                  player.crowns >= upgrade.cost,
+                              affordable: player.crowns >= upgrade.cost,
                             ),
                           ),
 
@@ -216,7 +209,9 @@ class _KingdomScreenState extends State<KingdomScreen> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           const SizedBox(width: AppSpacing.md),
-          Expanded(child: Text('KINGDOM', style: AppTextStyles.headline)),
+          Expanded(
+            child: StrokedText('KINGDOM', style: AppTextStyles.headline),
+          ),
           CurrencyPill(
             kind: CurrencyKind.crowns,
             amount: player.crowns,
@@ -246,9 +241,7 @@ class _KingdomScreenState extends State<KingdomScreen> {
         children: <Widget>[
           Text(
             'NEXT: ${next.name.toUpperCase()}',
-            style: AppTextStyles.label.copyWith(
-              color: AppColors.textSecondary,
-            ),
+            style: AppTextStyles.label.copyWith(color: AppColors.textSecondary),
           ),
           const SizedBox(height: AppSpacing.md),
           KdButton(
@@ -416,10 +409,7 @@ class _RealmProgress extends StatelessWidget {
                     ),
                   ),
                   if (kingdom.index <= currentIndex)
-                    Text(
-                      '${kingdom.totalCost}',
-                      style: AppTextStyles.caption,
-                    ),
+                    Text('${kingdom.totalCost}', style: AppTextStyles.caption),
                 ],
               ),
             ),

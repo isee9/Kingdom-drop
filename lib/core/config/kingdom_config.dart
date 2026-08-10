@@ -31,223 +31,219 @@ abstract final class KingdomConfig {
   ];
 
   static int costFor(int kingdomIndex, int upgradeIndex) {
-    final double scale = _kingdomScale[kingdomIndex.clamp(
-      0,
-      _kingdomScale.length - 1,
-    )];
-    final double raw = _baseCosts[upgradeIndex.clamp(0, _baseCosts.length - 1)] *
-        scale;
+    final double scale =
+        _kingdomScale[kingdomIndex.clamp(0, _kingdomScale.length - 1)];
+    final double raw =
+        _baseCosts[upgradeIndex.clamp(0, _baseCosts.length - 1)] * scale;
     return (raw / 5).round() * 5;
   }
 
   /// Crowns paid out by the chest awarded for finishing a kingdom.
   static int completionCrowns(int kingdomIndex) => 25 + kingdomIndex * 15;
 
-  static final List<KingdomDefinition> kingdoms = List<KingdomDefinition>
-      .unmodifiable(
-    <KingdomDefinition>[
-      _build(
-        0,
-        id: 'forgotten_keep',
-        name: 'Forgotten Keep',
-        blurb: 'A ruin swallowed by ivy. Somewhere under it, a throne.',
-        palette: const KingdomPalette(
-          sky: <Color>[Color(0xFF3B2F6B), Color(0xFF6A4E8F)],
-          ground: Color(0xFF2A2350),
-          structure: Color(0xFF8B7FB5),
-          structureLit: Color(0xFFC9BEE8),
-          accent: Color(0xFFFFC53D),
-        ),
-        upgrades: const <String>[
-          'Repair Castle Gate',
-          'Repair Bridge',
-          'Build Market',
-          'Restore Tower',
-          'Restore Castle',
-        ],
+  static final List<KingdomDefinition>
+  kingdoms = List<KingdomDefinition>.unmodifiable(<KingdomDefinition>[
+    _build(
+      0,
+      id: 'forgotten_keep',
+      name: 'Forgotten Keep',
+      blurb: 'A ruin swallowed by ivy. Somewhere under it, a throne.',
+      palette: const KingdomPalette(
+        sky: <Color>[Color(0xFF15315C), Color(0xFF4A7CB5)],
+        ground: Color(0xFF2C4A3B),
+        structure: Color(0xFF7C89A1),
+        structureLit: Color(0xFFDCE3EF),
+        accent: Color(0xFFFFC33A),
       ),
-      _build(
-        1,
-        id: 'greenwood_village',
-        name: 'Greenwood Village',
-        blurb: 'Good soil, good people, and a mill that has not turned in years.',
-        palette: const KingdomPalette(
-          sky: <Color>[Color(0xFF1F5E4A), Color(0xFF4CA07A)],
-          ground: Color(0xFF23503F),
-          structure: Color(0xFF9C7A52),
-          structureLit: Color(0xFFE0BE8F),
-          accent: Color(0xFF8CE6A8),
-        ),
-        upgrades: const <String>[
-          'Clear the Overgrowth',
-          'Raise the Mill',
-          'Plant the Orchard',
-          'Build the Longhouse',
-          'Crown the Greenwood',
-        ],
+      upgrades: const <String>[
+        'Repair Castle Gate',
+        'Repair Bridge',
+        'Build Market',
+        'Restore Tower',
+        'Restore Castle',
+      ],
+    ),
+    _build(
+      1,
+      id: 'greenwood_village',
+      name: 'Greenwood Village',
+      blurb: 'Good soil, good people, and a mill that has not turned in years.',
+      palette: const KingdomPalette(
+        sky: <Color>[Color(0xFF17604F), Color(0xFF5CBF90)],
+        ground: Color(0xFF255141),
+        structure: Color(0xFFA37B4E),
+        structureLit: Color(0xFFF0CE9B),
+        accent: Color(0xFF9BF0B4),
       ),
-      _build(
-        2,
-        id: 'storm_harbour',
-        name: 'Storm Harbour',
-        blurb: 'The tide takes what it likes. Time to take some of it back.',
-        palette: const KingdomPalette(
-          sky: <Color>[Color(0xFF1B3E6B), Color(0xFF3E7BA8)],
-          ground: Color(0xFF16324F),
-          structure: Color(0xFF7A93AD),
-          structureLit: Color(0xFFCADCEB),
-          accent: Color(0xFF56D6FF),
-        ),
-        upgrades: const <String>[
-          'Rebuild the Quay',
-          'Light the Beacon',
-          'Repair the Sea Wall',
-          'Launch the Fleet',
-          'Raise the Harbour Keep',
-        ],
+      upgrades: const <String>[
+        'Clear the Overgrowth',
+        'Raise the Mill',
+        'Plant the Orchard',
+        'Build the Longhouse',
+        'Crown the Greenwood',
+      ],
+    ),
+    _build(
+      2,
+      id: 'storm_harbour',
+      name: 'Storm Harbour',
+      blurb: 'The tide takes what it likes. Time to take some of it back.',
+      palette: const KingdomPalette(
+        sky: <Color>[Color(0xFF122B4E), Color(0xFF3E7BA8)],
+        ground: Color(0xFF17364F),
+        structure: Color(0xFF7A93AD),
+        structureLit: Color(0xFFCADCEB),
+        accent: Color(0xFF56D6FF),
       ),
-      _build(
-        3,
-        id: 'desert_citadel',
-        name: 'Desert Citadel',
-        blurb: 'Sand buried it once. It will not get a second chance.',
-        palette: const KingdomPalette(
-          sky: <Color>[Color(0xFF7A4A2B), Color(0xFFE0A050)],
-          ground: Color(0xFF6B4626),
-          structure: Color(0xFFD9B27C),
-          structureLit: Color(0xFFFFE7BE),
-          accent: Color(0xFFFFD166),
-        ),
-        upgrades: const <String>[
-          'Unbury the Road',
-          'Dig the Great Well',
-          'Raise the Sun Gate',
-          'Build the Bazaar',
-          'Crown the Citadel',
-        ],
+      upgrades: const <String>[
+        'Rebuild the Quay',
+        'Light the Beacon',
+        'Repair the Sea Wall',
+        'Launch the Fleet',
+        'Raise the Harbour Keep',
+      ],
+    ),
+    _build(
+      3,
+      id: 'desert_citadel',
+      name: 'Desert Citadel',
+      blurb: 'Sand buried it once. It will not get a second chance.',
+      palette: const KingdomPalette(
+        sky: <Color>[Color(0xFF7A4A2B), Color(0xFFE0A050)],
+        ground: Color(0xFF6B4626),
+        structure: Color(0xFFD9B27C),
+        structureLit: Color(0xFFFFE7BE),
+        accent: Color(0xFFFFD166),
       ),
-      _build(
-        4,
-        id: 'frozen_kingdom',
-        name: 'Frozen Kingdom',
-        blurb: 'Everything here is preserved, including the grudges.',
-        palette: const KingdomPalette(
-          sky: <Color>[Color(0xFF2C4E77), Color(0xFF8FC5E8)],
-          ground: Color(0xFF3E6389),
-          structure: Color(0xFFBCD8EE),
-          structureLit: Color(0xFFF2FAFF),
-          accent: Color(0xFF7FE8FF),
-        ),
-        upgrades: const <String>[
-          'Break the Ice Road',
-          'Rekindle the Hearths',
-          'Rebuild the Frost Wall',
-          'Raise the Glass Spire',
-          'Thaw the Throne Room',
-        ],
+      upgrades: const <String>[
+        'Unbury the Road',
+        'Dig the Great Well',
+        'Raise the Sun Gate',
+        'Build the Bazaar',
+        'Crown the Citadel',
+      ],
+    ),
+    _build(
+      4,
+      id: 'frozen_kingdom',
+      name: 'Frozen Kingdom',
+      blurb: 'Everything here is preserved, including the grudges.',
+      palette: const KingdomPalette(
+        sky: <Color>[Color(0xFF2C4E77), Color(0xFF8FC5E8)],
+        ground: Color(0xFF3E6389),
+        structure: Color(0xFFBCD8EE),
+        structureLit: Color(0xFFF2FAFF),
+        accent: Color(0xFF7FE8FF),
       ),
-      _build(
-        5,
-        id: 'haunted_realm',
-        name: 'Haunted Realm',
-        blurb: 'The old residents never left. They can be reasoned with.',
-        palette: const KingdomPalette(
-          sky: <Color>[Color(0xFF2A1B3D), Color(0xFF5B3A72)],
-          ground: Color(0xFF241735),
-          structure: Color(0xFF6E5A87),
-          structureLit: Color(0xFFB79DD6),
-          accent: Color(0xFF9DFFB0),
-        ),
-        upgrades: const <String>[
-          'Mend the Iron Fence',
-          'Relight the Lanterns',
-          'Restore the Chapel',
-          'Silence the Bell Tower',
-          'Reclaim the Manor',
-        ],
+      upgrades: const <String>[
+        'Break the Ice Road',
+        'Rekindle the Hearths',
+        'Rebuild the Frost Wall',
+        'Raise the Glass Spire',
+        'Thaw the Throne Room',
+      ],
+    ),
+    _build(
+      5,
+      id: 'haunted_realm',
+      name: 'Haunted Realm',
+      blurb: 'The old residents never left. They can be reasoned with.',
+      palette: const KingdomPalette(
+        sky: <Color>[Color(0xFF2A1B3D), Color(0xFF5B3A72)],
+        ground: Color(0xFF241735),
+        structure: Color(0xFF6E5A87),
+        structureLit: Color(0xFFB79DD6),
+        accent: Color(0xFF9DFFB0),
       ),
-      _build(
-        6,
-        id: 'sky_kingdom',
-        name: 'Sky Kingdom',
-        blurb: 'Islands adrift, held up by nothing but very good engineering.',
-        palette: const KingdomPalette(
-          sky: <Color>[Color(0xFF3D5AA8), Color(0xFF9FC4FF)],
-          ground: Color(0xFF44639E),
-          structure: Color(0xFFCFDCFF),
-          structureLit: Color(0xFFFFFFFF),
-          accent: Color(0xFFFFE9A8),
-        ),
-        upgrades: const <String>[
-          'Anchor the Drifting Isle',
-          'Build the Skybridge',
-          'Raise the Wind Mill',
-          'Open the Cloud Market',
-          'Crown the Sky Palace',
-        ],
+      upgrades: const <String>[
+        'Mend the Iron Fence',
+        'Relight the Lanterns',
+        'Restore the Chapel',
+        'Silence the Bell Tower',
+        'Reclaim the Manor',
+      ],
+    ),
+    _build(
+      6,
+      id: 'sky_kingdom',
+      name: 'Sky Kingdom',
+      blurb: 'Islands adrift, held up by nothing but very good engineering.',
+      palette: const KingdomPalette(
+        sky: <Color>[Color(0xFF3D5AA8), Color(0xFF9FC4FF)],
+        ground: Color(0xFF44639E),
+        structure: Color(0xFFCFDCFF),
+        structureLit: Color(0xFFFFFFFF),
+        accent: Color(0xFFFFE9A8),
       ),
-      _build(
-        7,
-        id: 'volcanic_fortress',
-        name: 'Volcanic Fortress',
-        blurb: 'Built on a volcano, deliberately. The forges are worth it.',
-        palette: const KingdomPalette(
-          sky: <Color>[Color(0xFF5C1A22), Color(0xFFC2452B)],
-          ground: Color(0xFF3A1218),
-          structure: Color(0xFF7C4038),
-          structureLit: Color(0xFFFF9155),
-          accent: Color(0xFFFFB443),
-        ),
-        upgrades: const <String>[
-          'Channel the Lava Flow',
-          'Fire the Great Forge',
-          'Cast the Iron Gate',
-          'Raise the Ash Tower',
-          'Seal the Caldera Keep',
-        ],
+      upgrades: const <String>[
+        'Anchor the Drifting Isle',
+        'Build the Skybridge',
+        'Raise the Wind Mill',
+        'Open the Cloud Market',
+        'Crown the Sky Palace',
+      ],
+    ),
+    _build(
+      7,
+      id: 'volcanic_fortress',
+      name: 'Volcanic Fortress',
+      blurb: 'Built on a volcano, deliberately. The forges are worth it.',
+      palette: const KingdomPalette(
+        sky: <Color>[Color(0xFF5C1A22), Color(0xFFC2452B)],
+        ground: Color(0xFF3A1218),
+        structure: Color(0xFF7C4038),
+        structureLit: Color(0xFFFF9155),
+        accent: Color(0xFFFFB443),
       ),
-      _build(
-        8,
-        id: 'crystal_empire',
-        name: 'Crystal Empire',
-        blurb: 'Every wall sings a different note when the wind hits it.',
-        palette: const KingdomPalette(
-          sky: <Color>[Color(0xFF34246B), Color(0xFF8E5BD4)],
-          ground: Color(0xFF2C1F5A),
-          structure: Color(0xFFB79BFF),
-          structureLit: Color(0xFFEFE2FF),
-          accent: Color(0xFF6BF0FF),
-        ),
-        upgrades: const <String>[
-          'Mine the First Shard',
-          'Grow the Prism Grove',
-          'Build the Refractory',
-          'Raise the Singing Spire',
-          'Set the Crystal Crown',
-        ],
+      upgrades: const <String>[
+        'Channel the Lava Flow',
+        'Fire the Great Forge',
+        'Cast the Iron Gate',
+        'Raise the Ash Tower',
+        'Seal the Caldera Keep',
+      ],
+    ),
+    _build(
+      8,
+      id: 'crystal_empire',
+      name: 'Crystal Empire',
+      blurb: 'Every wall sings a different note when the wind hits it.',
+      palette: const KingdomPalette(
+        sky: <Color>[Color(0xFF34246B), Color(0xFF8E5BD4)],
+        ground: Color(0xFF2C1F5A),
+        structure: Color(0xFFB79BFF),
+        structureLit: Color(0xFFEFE2FF),
+        accent: Color(0xFF6BF0FF),
       ),
-      _build(
-        9,
-        id: 'star_kingdom',
-        name: 'Star Kingdom',
-        blurb: 'The last one. Build it and the whole map looks up.',
-        palette: const KingdomPalette(
-          sky: <Color>[Color(0xFF120C33), Color(0xFF3B2A7A)],
-          ground: Color(0xFF171040),
-          structure: Color(0xFF6C5CE7),
-          structureLit: Color(0xFFFFE9A8),
-          accent: Color(0xFFFFC53D),
-        ),
-        upgrades: const <String>[
-          'Chart the Constellations',
-          'Build the Observatory',
-          'Raise the Comet Gate',
-          'Ignite the Star Forge',
-          'Crown the Star Throne',
-        ],
+      upgrades: const <String>[
+        'Mine the First Shard',
+        'Grow the Prism Grove',
+        'Build the Refractory',
+        'Raise the Singing Spire',
+        'Set the Crystal Crown',
+      ],
+    ),
+    _build(
+      9,
+      id: 'star_kingdom',
+      name: 'Star Kingdom',
+      blurb: 'The last one. Build it and the whole map looks up.',
+      palette: const KingdomPalette(
+        sky: <Color>[Color(0xFF120C33), Color(0xFF3B2A7A)],
+        ground: Color(0xFF171040),
+        structure: Color(0xFF6C5CE7),
+        structureLit: Color(0xFFFFE9A8),
+        accent: Color(0xFFFFC53D),
       ),
-    ],
-  );
+      upgrades: const <String>[
+        'Chart the Constellations',
+        'Build the Observatory',
+        'Raise the Comet Gate',
+        'Ignite the Star Forge',
+        'Crown the Star Throne',
+      ],
+    ),
+  ]);
 
   static KingdomDefinition _build(
     int index, {
@@ -265,11 +261,7 @@ abstract final class KingdomConfig {
       palette: palette,
       upgrades: List<KingdomUpgrade>.unmodifiable(<KingdomUpgrade>[
         for (int i = 0; i < upgrades.length; i++)
-          KingdomUpgrade(
-            index: i,
-            name: upgrades[i],
-            cost: costFor(index, i),
-          ),
+          KingdomUpgrade(index: i, name: upgrades[i], cost: costFor(index, i)),
       ]),
     );
   }
@@ -307,9 +299,7 @@ class KingdomDefinition {
       id: json['id'] as String,
       name: json['name'] as String,
       blurb: json['blurb'] as String? ?? '',
-      palette: KingdomPalette.fromJson(
-        json['palette'] as Map<String, dynamic>,
-      ),
+      palette: KingdomPalette.fromJson(json['palette'] as Map<String, dynamic>),
       upgrades: <KingdomUpgrade>[
         for (final dynamic u in json['upgrades'] as List<dynamic>)
           KingdomUpgrade.fromJson(u as Map<String, dynamic>),

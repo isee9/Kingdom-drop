@@ -5,6 +5,7 @@ import '../../services/service_locator.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/game_ui.dart';
 import '../../widgets/kingdom_logo.dart';
 import '../home/home_screen.dart';
 import '../onboarding/intro_screen.dart';
@@ -87,24 +88,23 @@ class _SplashScreenState extends State<SplashScreen>
             children: <Widget>[
               ScaleTransition(
                 scale: _logoScale,
-                child: const KingdomLogo(size: 148),
+                child: const KingdomLogo(size: 132),
               ),
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.md),
               FadeTransition(
                 opacity: _textFade,
                 child: Column(
                   children: <Widget>[
-                    Text(
-                      AppConfig.appName.toUpperCase(),
-                      style: AppTextStyles.logo,
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Text(
-                      AppConfig.tagline,
+                    KingdomWordmark(fontSize: 44),
+                    const SizedBox(height: AppSpacing.md),
+                    StrokedText(
+                      AppConfig.tagline.toUpperCase(),
+                      strokeWidth: 3.5,
                       style: AppTextStyles.body.copyWith(
-                        letterSpacing: 2,
-                        color: AppColors.gold,
-                        fontWeight: FontWeight.w700,
+                        letterSpacing: 2.5,
+                        color: AppColors.goldLight,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
                       ),
                     ),
                   ],

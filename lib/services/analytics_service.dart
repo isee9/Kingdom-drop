@@ -61,12 +61,14 @@ class DebugAnalyticsService implements AnalyticsService {
   final int maxRecords;
   final List<AnalyticsRecord> _records = <AnalyticsRecord>[];
 
-  List<AnalyticsRecord> get records => List<AnalyticsRecord>.unmodifiable(
-    _records.reversed,
-  );
+  List<AnalyticsRecord> get records =>
+      List<AnalyticsRecord>.unmodifiable(_records.reversed);
 
   @override
-  void log(String event, [Map<String, Object?> parameters = const <String, Object?>{}]) {
+  void log(
+    String event, [
+    Map<String, Object?> parameters = const <String, Object?>{},
+  ]) {
     final AnalyticsRecord record = AnalyticsRecord(event, parameters);
     _records.add(record);
     if (_records.length > maxRecords) _records.removeAt(0);
@@ -74,9 +76,8 @@ class DebugAnalyticsService implements AnalyticsService {
   }
 
   @override
-  void screen(String name) => log('screen_view', <String, Object?>{
-    'screen': name,
-  });
+  void screen(String name) =>
+      log('screen_view', <String, Object?>{'screen': name});
 
   void clear() => _records.clear();
 }
@@ -86,7 +87,10 @@ class NoopAnalyticsService implements AnalyticsService {
   const NoopAnalyticsService();
 
   @override
-  void log(String event, [Map<String, Object?> parameters = const <String, Object?>{}]) {}
+  void log(
+    String event, [
+    Map<String, Object?> parameters = const <String, Object?>{},
+  ]) {}
 
   @override
   void screen(String name) {}

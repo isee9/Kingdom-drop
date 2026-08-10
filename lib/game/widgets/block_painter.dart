@@ -6,16 +6,21 @@ import '../../theme/app_spacing.dart';
 /// Shared block drawing.
 ///
 /// Every block in the game — on the board, in the tray, under the finger, in
-/// the tutorial — is drawn by [paintBlock], so they are guaranteed to look
-/// identical and a change to the block style is a one-line change.
+/// the tutorial — comes from [paintBlock], so they are guaranteed to match and
+/// the block style is a one-place change.
+///
+/// A block is built from five passes, and each one is doing a job:
+/// a dark contact shadow to sit it on the board, a dark outline so it reads
+/// against any colour, a solid bottom lip for thickness, the graded face, and a
+/// gloss highlight. Flat rectangles are what make a puzzle board look like a
+/// prototype; this is the difference.
 abstract final class BlockPainting {
   /// Inset of the visible block inside its cell, as a fraction of cell size.
-  static const double inset = 0.055;
+  static const double inset = 0.045;
 
-  /// Draws one block face into [cell].
-  ///
-  /// The look is a soft vertical gradient with a lighter top edge and a darker
-  /// bottom edge, which reads as a physical tile without needing a texture.
+  /// Thickness of the bottom lip, as a fraction of the block's height.
+  static const double _lip = 0.13;
+
   static void paintBlock(
     Canvas canvas,
     Rect cell,
@@ -25,45 +30,89 @@ abstract final class BlockPainting {
   }) {
     if (scale <= 0 || opacity <= 0) return;
 
-    final Color base =
-        AppColors.blocks[colorIndex.abs() % AppColors.blocks.length];
     final Rect rect = _inset(cell, scale);
-    final double radius = rect.width * AppRadius.blockFraction;
-    final RRect rrect = RRect.fromRectAndRadius(rect, Radius.circular(radius));
+    if (rect.width <= 1) return;
 
-    // Drop shadow grounds the block against the board.
+    final int i = colorIndex.abs() % AppColors.blocks.length;
+    final Color base = AppColors.blocks[i];
+    final Color top = AppColors.blockTop(i);
+    final Color edge = AppColors.blockEdge(i);
+
+    final double radius = rect.width * AppRadius.blockFraction;
+    final double lip = rect.height * _lip;
+
+    // 1. Contact shadow.
     canvas.drawRRect(
-      rrect.shift(Offset(0, rect.height * 0.06)),
+      RRect.fromRectAndRadius(
+        rect.translate(0, rect.height * 0.07),
+        Radius.circular(radius),
+      ),
       Paint()
-        ..color = Colors.black.withValues(alpha: 0.30 * opacity)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
+        ..color = Colors.black.withValues(alpha: 0.38 * opacity)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
     );
 
+    // 2. Outline. Drawn as a slightly larger solid shape rather than a stroke
+    //    so it stays crisp at small tray sizes.
     canvas.drawRRect(
-      rrect,
+      RRect.fromRectAndRadius(
+        rect.inflate(rect.width * 0.045),
+        Radius.circular(radius * 1.1),
+      ),
+      Paint()..color = AppColors.textOutline.withValues(alpha: 0.85 * opacity),
+    );
+
+    // 3. Bottom lip: the whole block in the darker edge colour, with the face
+    //    drawn short of the bottom so the lip shows through.
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, Radius.circular(radius)),
+      Paint()..color = edge.withValues(alpha: opacity),
+    );
+
+    // 4. Face.
+    final Rect face = Rect.fromLTWH(
+      rect.left,
+      rect.top,
+      rect.width,
+      rect.height - lip,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(face, Radius.circular(radius)),
       Paint()
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: <Color>[
-            Color.lerp(base, Colors.white, 0.22)!.withValues(alpha: opacity),
+            top.withValues(alpha: opacity),
             base.withValues(alpha: opacity),
-            Color.lerp(base, Colors.black, 0.20)!.withValues(alpha: opacity),
           ],
-          stops: const <double>[0, 0.55, 1],
-        ).createShader(rect),
+        ).createShader(face),
     );
 
-    // Inner top highlight: a short arc of light along the upper edge.
-    final Rect highlight = Rect.fromLTWH(
-      rect.left + rect.width * 0.16,
-      rect.top + rect.height * 0.12,
-      rect.width * 0.68,
-      rect.height * 0.22,
+    // 5. Gloss across the top, and a soft sheen down the left edge.
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          face.left + face.width * 0.12,
+          face.top + face.height * 0.10,
+          face.width * 0.76,
+          face.height * 0.30,
+        ),
+        Radius.circular(radius * 0.8),
+      ),
+      Paint()..color = Colors.white.withValues(alpha: 0.30 * opacity),
     );
     canvas.drawRRect(
-      RRect.fromRectAndRadius(highlight, Radius.circular(radius * 0.6)),
-      Paint()..color = Colors.white.withValues(alpha: 0.20 * opacity),
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          face.left + face.width * 0.10,
+          face.top + face.height * 0.18,
+          face.width * 0.12,
+          face.height * 0.62,
+        ),
+        Radius.circular(radius * 0.6),
+      ),
+      Paint()..color = Colors.white.withValues(alpha: 0.13 * opacity),
     );
   }
 
@@ -84,7 +133,7 @@ abstract final class BlockPainting {
         ..color = valid ? AppColors.previewValid : AppColors.previewInvalid,
     );
 
-    // A solid outline as well as the fill: placement validity must not depend
+    // A solid outline as well as a fill: placement validity must never depend
     // on colour alone.
     canvas.drawRRect(
       rrect.deflate(1),
@@ -109,19 +158,38 @@ abstract final class BlockPainting {
     }
   }
 
-  /// Empty board cell.
+  /// Empty board cell: a shallow socket rather than a flat square.
   static void paintEmptyCell(Canvas canvas, Rect cell, {bool onCross = false}) {
     final Rect rect = _inset(cell, 1);
+    if (rect.width <= 1) return;
     final double radius = rect.width * AppRadius.blockFraction;
-    // Cross cells are dimmer than the quadrants so the region rule reads at a
-    // glance, but they must still look like cells — they are perfectly legal
-    // to play into, and a player should never mistake them for a gap.
+
+    // Cross cells are dimmer so the region rule reads at a glance, but they
+    // must still look like cells — they are legal to play into, and a player
+    // should never mistake one for a gap.
+    final Color fill = onCross
+        ? Color.lerp(AppColors.boardCell, AppColors.boardBase, 0.5)!
+        : AppColors.boardCell;
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, Radius.circular(radius)),
+      Paint()..color = fill,
+    );
+
+    // Inner shadow along the top edge, which is what makes it read as recessed.
     canvas.drawRRect(
       RRect.fromRectAndRadius(rect, Radius.circular(radius)),
       Paint()
-        ..color = onCross
-            ? Color.lerp(AppColors.boardCell, AppColors.boardBase, 0.45)!
-            : AppColors.boardCell,
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = rect.width * 0.07
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: <Color>[
+            Colors.black.withValues(alpha: 0.35),
+            Colors.white.withValues(alpha: 0.05),
+          ],
+        ).createShader(rect),
     );
   }
 

@@ -4,16 +4,13 @@ import '../../core/utils/formatters.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/game_ui.dart';
 import '../../widgets/kd_button.dart';
 import '../controller/game_controller.dart';
 
 /// Score, best score and combo readout at the top of the game screen.
 class GameHud extends StatelessWidget {
-  const GameHud({
-    required this.controller,
-    required this.onPause,
-    super.key,
-  });
+  const GameHud({required this.controller, required this.onPause, super.key});
 
   final GameController controller;
   final VoidCallback onPause;
@@ -26,12 +23,17 @@ class GameHud extends StatelessWidget {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
-            Expanded(
+            GameChip(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.lg,
+                vertical: 4,
+              ),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       Text(
                         'BEST ${Formatters.number(controller.bestScore)}',
@@ -52,11 +54,11 @@ class GameHud extends StatelessWidget {
                       ],
                     ],
                   ),
-                  const SizedBox(height: AppSpacing.xxs),
                   _ScoreReadout(score: controller.score),
                 ],
               ),
             ),
+            const Spacer(),
             _ComboBadge(
               active: controller.comboActive,
               multiplier: controller.comboMultiplier,
@@ -86,9 +88,15 @@ class _ScoreReadout extends StatelessWidget {
       tween: Tween<double>(begin: score.toDouble(), end: score.toDouble()),
       duration: AppDurations.slow,
       curve: Curves.easeOutCubic,
-      builder: (BuildContext context, double value, _) => Text(
+      builder: (BuildContext context, double value, _) => StrokedText(
         Formatters.number(value.round()),
+        strokeWidth: 4.5,
         style: AppTextStyles.scoreValue,
+        fillGradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: <Color>[Colors.white, Color(0xFFBBD2F5)],
+        ),
       ),
     );
   }
@@ -135,11 +143,13 @@ class _ComboBadge extends StatelessWidget {
                 color: AppColors.textOnGold,
               ),
               const SizedBox(width: AppSpacing.xs),
-              Text(
+              StrokedText(
                 Formatters.multiplier(multiplier),
+                strokeWidth: 3,
+                strokeColor: AppColors.goldEdge,
                 style: AppTextStyles.currency.copyWith(
-                  color: AppColors.textOnGold,
-                  fontSize: 14,
+                  color: Colors.white,
+                  fontSize: 15,
                 ),
               ),
             ],
@@ -232,13 +242,14 @@ class _FloatingScoreTextState extends State<_FloatingScoreText>
       animation: _controller,
       builder: (BuildContext context, Widget? child) {
         final double t = _controller.value;
-        final double rise = Curves.easeOutCubic.transform(t) * widget.cellSize * 2.2;
+        final double rise =
+            Curves.easeOutCubic.transform(t) * widget.cellSize * 2.2;
         final double opacity = t < 0.15
             ? t / 0.15
             : (1 - ((t - 0.15) / 0.85)).clamp(0.0, 1.0);
-        final double scale = 0.7 + 0.5 * Curves.easeOutBack.transform(
-          (t / 0.35).clamp(0.0, 1.0),
-        );
+        final double scale =
+            0.7 +
+            0.5 * Curves.easeOutBack.transform((t / 0.35).clamp(0.0, 1.0));
 
         return Positioned(
           left: left - 60,
@@ -250,17 +261,14 @@ class _FloatingScoreTextState extends State<_FloatingScoreText>
           ),
         );
       },
-      child: Text(
+      child: StrokedText(
         widget.score.text,
-        textAlign: TextAlign.center,
+        strokeWidth: emphatic ? 5 : 4,
         style: TextStyle(
-          fontSize: emphatic ? 26 : 20,
+          fontSize: emphatic ? 28 : 21,
           fontWeight: FontWeight.w900,
           color: emphatic ? AppColors.gold : AppColors.textPrimary,
           letterSpacing: 0.5,
-          shadows: const <Shadow>[
-            Shadow(color: Colors.black54, blurRadius: 6, offset: Offset(0, 2)),
-          ],
         ),
       ),
     );

@@ -409,8 +409,10 @@ class GameEngine {
   }
 
   // ----------------------------------------------------------- end rewards
-  int get crownsEarned =>
-      RewardCalculator.crownsFor(score: stats.score, bigCombos: stats.bigCombos);
+  int get crownsEarned => RewardCalculator.crownsFor(
+    score: stats.score,
+    bigCombos: stats.bigCombos,
+  );
 
   int get coinsEarned => RewardCalculator.coinsFor(score: stats.score);
 
@@ -437,11 +439,7 @@ class GameEngine {
       piece.used = true;
     }
     _tray = <TrayPiece>[
-      TrayPiece(
-        id: -99,
-        shape: ShapeCatalog.byId('square3'),
-        colorIndex: 0,
-      ),
+      TrayPiece(id: -99, shape: ShapeCatalog.byId('square3'), colorIndex: 0),
     ];
     for (int r = 0; r < board.size; r++) {
       for (int c = 0; c < board.size; c++) {

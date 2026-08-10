@@ -31,10 +31,8 @@ Future<OutOfMovesChoice?> showGameOverSheet(
     enableDrag: false,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (BuildContext context) => _OutOfMovesSheet(
-      controller: controller,
-      services: services,
-    ),
+    builder: (BuildContext context) =>
+        _OutOfMovesSheet(controller: controller, services: services),
   );
 }
 
@@ -112,9 +110,9 @@ class _OutOfMovesSheetState extends State<_OutOfMovesSheet> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -142,7 +140,8 @@ class _OutOfMovesSheetState extends State<_OutOfMovesSheet> {
         children: <Widget>[
           const GameSheetHeader(
             title: 'NO MORE MOVES',
-            subtitle: 'None of your pieces fit. Clear some space to keep going.',
+            subtitle:
+                'None of your pieces fit. Clear some space to keep going.',
           ),
           const SizedBox(height: AppSpacing.lg),
 
@@ -229,8 +228,7 @@ class _OutOfMovesSheetState extends State<_OutOfMovesSheet> {
             label: 'END GAME',
             expand: true,
             enabled: !_busy,
-            onPressed: () =>
-                Navigator.of(context).pop(OutOfMovesChoice.ended),
+            onPressed: () => Navigator.of(context).pop(OutOfMovesChoice.ended),
           ),
         ],
       ),

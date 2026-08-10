@@ -80,8 +80,12 @@ class _KingdomPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     _paintSky(canvas, size);
+    _paintClouds(canvas, size);
+    _paintRidges(canvas, size);
     _paintHills(canvas, size);
     _paintGround(canvas, size);
+    _paintTrees(canvas, size);
+    _paintPath(canvas, size);
 
     // Back to front.
     _paintCastle(canvas, size, _restoration(4));
@@ -128,12 +132,120 @@ class _KingdomPainter extends CustomPainter {
     }
   }
 
+  /// Soft cloud banks, so the sky is not an empty gradient.
+  void _paintClouds(Canvas canvas, Size size) {
+    final math.Random rng = math.Random(palette.structure.toARGB32());
+    final Paint cloud = Paint()
+      ..color = Colors.white.withValues(alpha: 0.10)
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, size.height * 0.012);
+
+    for (int i = 0; i < 3; i++) {
+      final double cx = size.width * (0.12 + rng.nextDouble() * 0.76);
+      final double cy = size.height * (0.10 + rng.nextDouble() * 0.28);
+      final double w = size.width * (0.14 + rng.nextDouble() * 0.12);
+      final double h = size.height * 0.055;
+      for (int b = 0; b < 3; b++) {
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: Offset(
+              cx + (b - 1) * w * 0.42,
+              cy + (b == 1 ? -h * 0.3 : 0),
+            ),
+            width: w * (b == 1 ? 1.1 : 0.85),
+            height: h * (b == 1 ? 1.3 : 1),
+          ),
+          cloud,
+        );
+      }
+    }
+  }
+
+  /// Distant mountain silhouettes, darker than the hills in front of them.
+  void _paintRidges(Canvas canvas, Size size) {
+    final double y = size.height * _groundY;
+    final Paint far = Paint()
+      ..color = Color.lerp(
+        palette.sky.last,
+        Colors.black,
+        0.35,
+      )!.withValues(alpha: 0.75);
+
+    final Path ridge = Path()..moveTo(0, y);
+    double x = 0;
+    final math.Random rng = math.Random(palette.accent.toARGB32());
+    while (x < size.width) {
+      final double peakW = size.width * (0.16 + rng.nextDouble() * 0.12);
+      final double peakH = size.height * (0.14 + rng.nextDouble() * 0.16);
+      ridge.lineTo(x + peakW / 2, y - peakH);
+      ridge.lineTo(x + peakW, y);
+      x += peakW;
+    }
+    ridge
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+    canvas.drawPath(ridge, far);
+  }
+
+  /// A treeline along the ground, which is what stops the scene reading as
+  /// geometry floating on a gradient.
+  void _paintTrees(Canvas canvas, Size size) {
+    final double y = size.height * _groundY;
+    final math.Random rng = math.Random(7);
+    final Color trunk = Color.lerp(palette.ground, Colors.black, 0.45)!;
+    final Color foliage = Color.lerp(palette.ground, Colors.white, 0.16)!;
+
+    // Left cluster and right cluster, kept clear of the structures.
+    for (final double band in <double>[0.02, 0.86]) {
+      for (int i = 0; i < 3; i++) {
+        final double tx =
+            size.width * (band + i * 0.045 + rng.nextDouble() * 0.02);
+        final double th = size.height * (0.10 + rng.nextDouble() * 0.06);
+        final double tw = th * 0.55;
+
+        canvas.drawRect(
+          Rect.fromLTWH(tx - tw * 0.08, y - th * 0.25, tw * 0.16, th * 0.3),
+          Paint()..color = trunk,
+        );
+        for (int layer = 0; layer < 3; layer++) {
+          final double lw = tw * (1 - layer * 0.22);
+          final double ly = y - th * (0.22 + layer * 0.26);
+          canvas.drawPath(
+            Path()
+              ..moveTo(tx, ly - th * 0.34)
+              ..lineTo(tx - lw / 2, ly)
+              ..lineTo(tx + lw / 2, ly)
+              ..close(),
+            Paint()..color = foliage,
+          );
+        }
+      }
+    }
+  }
+
+  /// A lit path leading to the gate, drawing the eye to the castle.
+  void _paintPath(Canvas canvas, Size size) {
+    final double y = size.height * _groundY;
+    final Path path = Path()
+      ..moveTo(size.width * 0.42, y)
+      ..lineTo(size.width * 0.58, y)
+      ..lineTo(size.width * 0.72, size.height)
+      ..lineTo(size.width * 0.28, size.height)
+      ..close();
+    canvas.drawPath(
+      path,
+      Paint()..color = Color.lerp(palette.ground, Colors.white, 0.13)!,
+    );
+  }
+
   void _paintHills(Canvas canvas, Size size) {
     final double y = size.height * _groundY;
     final Paint far = Paint()
-      ..color = Color.lerp(palette.ground, Colors.white, 0.10)!.withValues(
-        alpha: 0.55,
-      );
+      ..color = Color.lerp(
+        palette.ground,
+        Colors.white,
+        0.10,
+      )!.withValues(alpha: 0.55);
 
     final Path hills = Path()..moveTo(0, y);
     hills.quadraticBezierTo(
@@ -182,12 +294,7 @@ class _KingdomPainter extends CustomPainter {
 
     // Two flanking turrets.
     for (final double x in <double>[left - w * 0.22, left + w * 0.98]) {
-      final Rect turret = Rect.fromLTWH(
-        x,
-        y - h * 0.82,
-        w * 0.24,
-        h * 0.82,
-      );
+      final Rect turret = Rect.fromLTWH(x, y - h * 0.82, w * 0.24, h * 0.82);
       _paintWall(canvas, turret, colour, restoration);
       _paintRoof(canvas, turret, restoration);
     }
@@ -396,12 +503,7 @@ class _KingdomPainter extends CustomPainter {
   }
 
   // ------------------------------------------------------------------ parts
-  void _paintWall(
-    Canvas canvas,
-    Rect rect,
-    Color colour,
-    double restoration,
-  ) {
+  void _paintWall(Canvas canvas, Rect rect, Color colour, double restoration) {
     canvas.drawRect(
       rect,
       Paint()
@@ -420,7 +522,10 @@ class _KingdomPainter extends CustomPainter {
       // Lit windows once the building is in use.
       final Paint glow = Paint()..color = palette.accent.withValues(alpha: 0.9);
       final int cols = math.max(1, (rect.width / (rect.width * 0.42)).floor());
-      final int rows = math.max(1, (rect.height / (rect.height * 0.34)).floor());
+      final int rows = math.max(
+        1,
+        (rect.height / (rect.height * 0.34)).floor(),
+      );
       final double ww = rect.width * 0.16;
       final double wh = rect.height * 0.13;
       for (int r = 0; r < rows; r++) {
@@ -461,8 +566,7 @@ class _KingdomPainter extends CustomPainter {
   }) {
     final double w = rect.width / (count * 2 - 1);
     final double h = rect.height * 0.09;
-    final Paint paint = Paint()
-      ..color = Color.lerp(colour, Colors.white, 0.1)!;
+    final Paint paint = Paint()..color = Color.lerp(colour, Colors.white, 0.1)!;
 
     for (int i = 0; i < count; i++) {
       canvas.drawRect(

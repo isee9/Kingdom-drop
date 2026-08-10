@@ -5,6 +5,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 import 'game_icons.dart';
+import 'game_ui.dart';
 
 enum CurrencyKind { coins, crowns }
 
@@ -39,51 +40,45 @@ class CurrencyPill extends StatelessWidget {
           '${Formatters.number(amount)} '
           '${kind == CurrencyKind.coins ? 'coins' : 'crowns'}',
       button: onTap != null,
-      child: GestureDetector(
+      child: GameChip(
         onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: compact ? AppSpacing.sm : AppSpacing.md,
-            vertical: compact ? 5 : 7,
-          ),
-          decoration: BoxDecoration(
-            color: AppColors.surfaceLow.withValues(alpha: 0.9),
-            borderRadius: BorderRadius.circular(AppRadius.pill),
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: <Widget>[
-              if (kind == CurrencyKind.coins)
-                CoinIcon(size: iconSize)
-              else
-                CrownIcon(size: iconSize),
-              SizedBox(width: compact ? AppSpacing.xs : AppSpacing.sm),
-              _AnimatedCount(
-                value: amount,
-                style: AppTextStyles.currency.copyWith(
-                  fontSize: compact ? 13 : 15,
+        padding: EdgeInsets.only(
+          left: compact ? 5 : 7,
+          right: compact ? AppSpacing.sm : AppSpacing.md,
+          top: compact ? 4 : 5,
+          bottom: compact ? 4 : 5,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            if (kind == CurrencyKind.coins)
+              CoinIcon(size: iconSize)
+            else
+              CrownIcon(size: iconSize),
+            SizedBox(width: compact ? AppSpacing.xs : AppSpacing.sm),
+            _AnimatedCount(
+              value: amount,
+              style: AppTextStyles.currency.copyWith(
+                fontSize: compact ? 13 : 15,
+              ),
+            ),
+            if (showAdd) ...<Widget>[
+              const SizedBox(width: AppSpacing.sm),
+              Container(
+                width: 18,
+                height: 18,
+                decoration: const BoxDecoration(
+                  color: AppColors.success,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.add_rounded,
+                  size: 14,
+                  color: Colors.white,
                 ),
               ),
-              if (showAdd) ...<Widget>[
-                const SizedBox(width: AppSpacing.sm),
-                Container(
-                  width: 18,
-                  height: 18,
-                  decoration: const BoxDecoration(
-                    color: AppColors.success,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.add_rounded,
-                    size: 14,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
             ],
-          ),
+          ],
         ),
       ),
     );
@@ -103,8 +98,11 @@ class _AnimatedCount extends StatelessWidget {
       tween: Tween<double>(begin: value.toDouble(), end: value.toDouble()),
       duration: AppDurations.slow,
       curve: Curves.easeOutCubic,
-      builder: (BuildContext context, double v, _) =>
-          Text(Formatters.number(v.round()), style: style),
+      builder: (BuildContext context, double v, _) => StrokedText(
+        Formatters.number(v.round()),
+        strokeWidth: 3,
+        style: style,
+      ),
     );
   }
 }

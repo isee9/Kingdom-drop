@@ -5,6 +5,7 @@ import '../../services/service_locator.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/game_ui.dart';
 import '../../widgets/kd_button.dart';
 import '../game/game_screen.dart';
 import '../home/home_screen.dart';
@@ -69,8 +70,7 @@ class _IntroScreenState extends State<IntroScreen>
     final KingdomDefinition keep = KingdomConfig.byIndex(0);
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+      body: GameBackground(
         child: SafeArea(
           // The intro has a lot of vertical content. On a short screen the
           // fixed Spacers would overflow, so the whole thing scrolls while
@@ -112,7 +112,11 @@ class _IntroScreenState extends State<IntroScreen>
             controller: _controller,
             start: 0,
             end: 0.18,
-            child: KingdomView(kingdom: keep, upgradesDone: 0),
+            child: GamePanel(
+              padding: const EdgeInsets.all(6),
+              studs: true,
+              child: KingdomView(kingdom: keep, upgradesDone: 0),
+            ),
           ),
           const SizedBox(height: AppSpacing.xl),
 
@@ -120,9 +124,11 @@ class _IntroScreenState extends State<IntroScreen>
             controller: _controller,
             start: 0.20,
             end: 0.36,
-            child: Text(
+            child: StrokedText(
               keep.name.toUpperCase(),
+              strokeWidth: 4.5,
               style: AppTextStyles.headline.copyWith(letterSpacing: 2),
+              fillGradient: AppColors.goldGradient,
             ),
           ),
           const SizedBox(height: AppSpacing.xl),

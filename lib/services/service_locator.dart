@@ -112,11 +112,7 @@ Future<AppServices> bootstrapServices() async {
 
 /// Makes [AppServices] available to the widget tree.
 class ServiceScope extends InheritedWidget {
-  const ServiceScope({
-    required this.services,
-    required super.child,
-    super.key,
-  });
+  const ServiceScope({required this.services, required super.child, super.key});
 
   final AppServices services;
 

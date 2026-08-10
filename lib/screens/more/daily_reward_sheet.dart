@@ -9,6 +9,7 @@ import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/game_icons.dart';
 import '../../widgets/kd_button.dart';
+import '../../widgets/game_ui.dart';
 
 /// The seven-day login streak.
 ///
@@ -67,7 +68,11 @@ class _DailyRewardSheetState extends State<_DailyRewardSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Text('DAILY REWARD', style: AppTextStyles.headline),
+          StrokedText(
+            'DAILY REWARD',
+            style: AppTextStyles.headline,
+            fillGradient: AppColors.goldGradient,
+          ),
           const SizedBox(height: AppSpacing.xs),
           Text(
             status.streakBroken && canClaim
@@ -86,7 +91,8 @@ class _DailyRewardSheetState extends State<_DailyRewardSheet> {
               for (final DailyRewardConfig day in EconomyConfig.dailyRewards)
                 _DayTile(
                   config: day,
-                  claimed: day.day < status.claimableDay ||
+                  claimed:
+                      day.day < status.claimableDay ||
                       (_justClaimed && day.day == status.claimableDay),
                   isToday: day.day == status.claimableDay,
                   claimable: canClaim && day.day == status.claimableDay,

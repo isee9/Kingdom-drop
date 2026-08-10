@@ -10,6 +10,7 @@ import '../../services/service_locator.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/game_ui.dart';
 import '../../widgets/game_icons.dart';
 import '../../widgets/kd_button.dart';
 import '../../widgets/kd_card.dart';
@@ -41,12 +42,12 @@ class GameSummaryScreen extends StatefulWidget {
       transitionDuration: AppDurations.normal,
       pageBuilder: (_, _, _) =>
           GameSummaryScreen(controller: controller, services: services),
-      transitionsBuilder:
-          (_, Animation<double> animation, _, Widget child) {
-            return FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(
+      transitionsBuilder: (_, Animation<double> animation, _, Widget child) {
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position:
+                Tween<Offset>(
                   begin: const Offset(0, 0.06),
                   end: Offset.zero,
                 ).animate(
@@ -55,10 +56,10 @@ class GameSummaryScreen extends StatefulWidget {
                     curve: Curves.easeOutCubic,
                   ),
                 ),
-                child: child,
-              ),
-            );
-          },
+            child: child,
+          ),
+        );
+      },
     );
   }
 
@@ -134,8 +135,8 @@ class _GameSummaryScreenState extends State<GameSummaryScreen> {
   @override
   Widget build(BuildContext context) {
     final GameStats stats = widget.controller.stats;
-    final bool isBest = stats.score >= widget.services.player.bestScore &&
-        stats.score > 0;
+    final bool isBest =
+        stats.score >= widget.services.player.bestScore && stats.score > 0;
 
     return PopScope(
       canPop: false,
@@ -144,23 +145,21 @@ class _GameSummaryScreenState extends State<GameSummaryScreen> {
       },
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: AppColors.backgroundGradient,
-          ),
+        body: GameBackground(
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               child: Column(
                 children: <Widget>[
                   const Spacer(),
-                  Text(
-                    isBest ? 'NEW BEST SCORE' : 'RUN COMPLETE',
-                    style: AppTextStyles.label.copyWith(
-                      color: isBest ? AppColors.gold : AppColors.textSecondary,
-                    ),
+                  RibbonBanner(
+                    text: isBest ? 'NEW BEST!' : 'GAME OVER',
+                    color: isBest ? AppColors.gold : AppColors.danger,
+                    edgeColor: isBest
+                        ? AppColors.goldDark
+                        : AppColors.dangerDark,
                   ),
-                  const SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.md),
                   _CountUpScore(score: stats.score),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
@@ -282,9 +281,15 @@ class _CountUpScore extends StatelessWidget {
       tween: Tween<double>(begin: 0, end: score.toDouble()),
       duration: const Duration(milliseconds: 900),
       curve: Curves.easeOutCubic,
-      builder: (BuildContext context, double value, _) => Text(
+      builder: (BuildContext context, double value, _) => StrokedText(
         Formatters.number(value.round()),
-        style: AppTextStyles.logo.copyWith(fontSize: 56, letterSpacing: 1),
+        strokeWidth: 6,
+        style: AppTextStyles.logo.copyWith(fontSize: 58, letterSpacing: 1),
+        fillGradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: <Color>[Color(0xFFFFF6D0), Color(0xFFFFB61F)],
+        ),
       ),
     );
   }

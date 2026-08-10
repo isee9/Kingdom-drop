@@ -192,13 +192,27 @@ class _TraySlot extends StatelessWidget {
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
           decoration: BoxDecoration(
-            color: AppColors.surfaceLow.withValues(alpha: 0.55),
+            // A recessed well, matching the board, so the tray reads as part
+            // of the same physical object rather than a floating strip.
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: <Color>[Color(0xFF0A1731), Color(0xFF122A52)],
+            ),
             borderRadius: BorderRadius.circular(AppRadius.md),
             border: Border.all(
               color: !piece.used && !hasPlacement
-                  ? AppColors.danger.withValues(alpha: 0.35)
-                  : AppColors.border,
+                  ? AppColors.danger.withValues(alpha: 0.55)
+                  : AppColors.gold.withValues(alpha: 0.30),
+              width: 1.5,
             ),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.45),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           alignment: Alignment.center,
           child: content,

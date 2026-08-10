@@ -158,11 +158,12 @@ class ShapeGenerator {
       return shape.weight;
     }
     // 0.4 at the "large" threshold, ramping to 1.0 at the biggest shape.
-    final double sizeFactor = (0.4 +
-            0.6 *
-                (shape.blockCount - _largeShapeBlocks) /
-                (_hugeShapeBlocks - _largeShapeBlocks))
-        .clamp(0.0, 1.0);
+    final double sizeFactor =
+        (0.4 +
+                0.6 *
+                    (shape.blockCount - _largeShapeBlocks) /
+                    (_hugeShapeBlocks - _largeShapeBlocks))
+            .clamp(0.0, 1.0);
     final double factor = 1 - (_maxSizePenalty * pressure * sizeFactor);
     return max(1, (shape.weight * factor).round());
   }

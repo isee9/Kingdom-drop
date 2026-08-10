@@ -6,6 +6,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/game_icons.dart';
+import '../../widgets/game_ui.dart';
 import '../controller/game_controller.dart';
 
 /// The in-game booster strip.
@@ -54,7 +55,8 @@ class BoosterBar extends StatelessWidget {
                   onTap: () {
                     if (controller.boosterCount(type) > 0) {
                       controller.toggleBooster(type);
-                    } else if (coins >= (EconomyConfig.boosterCoinCost[type] ?? 0)) {
+                    } else if (coins >=
+                        (EconomyConfig.boosterCoinCost[type] ?? 0)) {
                       controller.buyBooster(type);
                     } else {
                       onNeedCoins();
@@ -104,13 +106,20 @@ class _BoosterChip extends StatelessWidget {
           width: 66,
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
           decoration: BoxDecoration(
-            color: armed
-                ? accent.withValues(alpha: 0.25)
-                : AppColors.surface.withValues(alpha: 0.85),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: armed
+                  ? <Color>[
+                      accent.withValues(alpha: 0.55),
+                      accent.withValues(alpha: 0.2),
+                    ]
+                  : const <Color>[Color(0xFF1E3767), Color(0xFF0F1D3C)],
+            ),
             borderRadius: BorderRadius.circular(AppRadius.md),
             border: Border.all(
-              color: armed ? accent : AppColors.border,
-              width: armed ? 2 : 1,
+              color: armed ? accent : AppColors.gold.withValues(alpha: 0.45),
+              width: armed ? 2.5 : 1.5,
             ),
             boxShadow: armed
                 ? <BoxShadow>[
@@ -124,18 +133,16 @@ class _BoosterChip extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
-              Icon(
-                boosterIcon(type),
-                size: 24,
-                color: owned || canAfford
-                    ? accent
-                    : AppColors.textMuted,
+              Opacity(
+                opacity: owned || canAfford ? 1 : 0.45,
+                child: BoosterIcon(type: type, size: 27),
               ),
               const SizedBox(height: AppSpacing.xs),
               if (owned)
-                Text(
+                StrokedText(
                   'x$count',
-                  style: AppTextStyles.currency.copyWith(fontSize: 13),
+                  strokeWidth: 3,
+                  style: AppTextStyles.currency.copyWith(fontSize: 14),
                 )
               else
                 Row(

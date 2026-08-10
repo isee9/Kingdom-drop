@@ -112,18 +112,17 @@ class Board {
   int get cellCount => size * size;
 
   // ------------------------------------------------------------- regions
-  static final List<BoardRegion> regions = List<BoardRegion>.unmodifiable(
-    <BoardRegion>[
-      for (int qr = 0; qr < 2; qr++)
-        for (int qc = 0; qc < 2; qc++)
-          BoardRegion(
-            index: qr * 2 + qc,
-            topRow: qr * (defaultSize - regionSize),
-            leftCol: qc * (defaultSize - regionSize),
-            size: regionSize,
-          ),
-    ],
-  );
+  static final List<BoardRegion> regions =
+      List<BoardRegion>.unmodifiable(<BoardRegion>[
+        for (int qr = 0; qr < 2; qr++)
+          for (int qc = 0; qc < 2; qc++)
+            BoardRegion(
+              index: qr * 2 + qc,
+              topRow: qr * (defaultSize - regionSize),
+              leftCol: qc * (defaultSize - regionSize),
+              size: regionSize,
+            ),
+      ]);
 
   /// True for cells in the central cross, which belong to no region.
   static bool isCrossCell(int row, int col) {
@@ -283,11 +282,7 @@ class Board {
       }
       if (full) {
         groups.add(
-          ClearGroup(
-            type: ClearType.region,
-            index: region.index,
-            cells: cells,
-          ),
+          ClearGroup(type: ClearType.region, index: region.index, cells: cells),
         );
       }
     }

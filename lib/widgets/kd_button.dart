@@ -3,15 +3,16 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
+import 'game_ui.dart';
 
 enum KdButtonSize { small, medium, large, hero }
 
 /// The app's only button.
 ///
-/// Everything interactive routes through here so press feel, tap-target size
-/// and disabled treatment stay identical across screens. The press animation is
-/// a scale-down driven by a local controller, which is cheap: only this
-/// subtree rebuilds.
+/// Drawn as a physical slab: a dark outline, a glossy coloured face and a solid
+/// bottom edge. Pressing sinks the face onto that edge rather than just fading
+/// it, which is the single biggest thing separating a game button from an app
+/// button.
 class KdButton extends StatefulWidget {
   const KdButton({
     required this.label,
@@ -27,7 +28,7 @@ class KdButton extends StatefulWidget {
     super.key,
   });
 
-  /// Secondary styling: transparent with a border.
+  /// Secondary styling: a hollow slab with a metal rim.
   const KdButton.ghost({
     required this.label,
     required this.onPressed,
@@ -50,7 +51,7 @@ class KdButton extends StatefulWidget {
   final bool expand;
   final bool enabled;
 
-  /// Small pill drawn on the trailing edge, e.g. a price or a count.
+  /// Small pill on the trailing edge, e.g. a price or a count.
   final String? badge;
 
   final String? semanticLabel;
@@ -61,33 +62,31 @@ class KdButton extends StatefulWidget {
 
 class _KdButtonState extends State<KdButton>
     with SingleTickerProviderStateMixin {
-  late final AnimationController _controller = AnimationController(
+  late final AnimationController _press = AnimationController(
     vsync: this,
     duration: AppDurations.instant,
-    lowerBound: 0,
-    upperBound: 0.06,
   );
 
   bool get _interactive => widget.enabled && widget.onPressed != null;
 
   @override
   void dispose() {
-    _controller.dispose();
+    _press.dispose();
     super.dispose();
   }
 
   double get _height => switch (widget.size) {
-    KdButtonSize.small => 40,
-    KdButtonSize.medium => 52,
-    KdButtonSize.large => 60,
-    KdButtonSize.hero => 74,
+    KdButtonSize.small => 42,
+    KdButtonSize.medium => 54,
+    KdButtonSize.large => 62,
+    KdButtonSize.hero => 78,
   };
 
   double get _fontSize => switch (widget.size) {
     KdButtonSize.small => 13,
     KdButtonSize.medium => 15,
     KdButtonSize.large => 17,
-    KdButtonSize.hero => 24,
+    KdButtonSize.hero => 26,
   };
 
   double get _radius => switch (widget.size) {
@@ -97,118 +96,201 @@ class _KdButtonState extends State<KdButton>
     KdButtonSize.hero => AppRadius.xl,
   };
 
+  /// Thickness of the slab's bottom edge.
+  double get _depth => switch (widget.size) {
+    KdButtonSize.small => 4,
+    KdButtonSize.medium => 5,
+    KdButtonSize.large => 6,
+    KdButtonSize.hero => 8,
+  };
+
+  /// The face gradient, and the darker colour used for the slab's side.
+  (Gradient, Color) get _palette {
+    if (widget.gradient != null) {
+      final Gradient g = widget.gradient!;
+      return (g, _edgeFor(g.colors.last));
+    }
+    if (widget.color != null && widget.color != Colors.transparent) {
+      final Color c = widget.color!;
+      return (
+        LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: <Color>[_lighten(c), c],
+        ),
+        _edgeFor(c),
+      );
+    }
+    return (AppColors.primaryGradient, _edgeFor(AppColors.primaryDark));
+  }
+
+  static Color _lighten(Color c) {
+    final HSLColor hsl = HSLColor.fromColor(c);
+    return hsl.withLightness((hsl.lightness + 0.14).clamp(0.0, 1.0)).toColor();
+  }
+
+  static Color _edgeFor(Color c) {
+    final HSLColor hsl = HSLColor.fromColor(c);
+    return hsl
+        .withLightness((hsl.lightness - 0.20).clamp(0.0, 1.0))
+        .withSaturation((hsl.saturation + 0.08).clamp(0.0, 1.0))
+        .toColor();
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool ghost = widget.color == Colors.transparent;
-    final Gradient? gradient = ghost
-        ? null
-        : (widget.gradient ??
-              (widget.color == null
-                  ? AppColors.primaryGradient
-                  : LinearGradient(
-                      colors: <Color>[widget.color!, widget.color!],
-                    )));
+    final (Gradient gradient, Color edge) = _palette;
 
     return Semantics(
       button: true,
       enabled: _interactive,
       label: widget.semanticLabel ?? widget.label,
       child: GestureDetector(
-        onTapDown: _interactive ? (_) => _controller.forward() : null,
-        onTapUp: _interactive ? (_) => _controller.reverse() : null,
-        onTapCancel: _interactive ? _controller.reverse : null,
+        onTapDown: _interactive ? (_) => _press.forward() : null,
+        onTapUp: _interactive ? (_) => _press.reverse() : null,
+        onTapCancel: _interactive ? _press.reverse : null,
         onTap: _interactive ? widget.onPressed : null,
-        child: AnimatedBuilder(
-          animation: _controller,
-          builder: (BuildContext context, Widget? child) => Transform.scale(
-            scale: 1 - _controller.value,
-            child: child,
-          ),
-          child: AnimatedOpacity(
-            duration: AppDurations.fast,
-            opacity: _interactive ? 1 : 0.45,
-            child: Container(
-              height: _height,
-              width: widget.expand ? double.infinity : null,
-              padding: EdgeInsets.symmetric(
-                horizontal: widget.size == KdButtonSize.hero
-                    ? AppSpacing.xxl
-                    : AppSpacing.xl,
-              ),
-              decoration: BoxDecoration(
-                gradient: gradient,
-                color: ghost ? Colors.transparent : null,
-                borderRadius: BorderRadius.circular(_radius),
-                border: ghost
-                    ? Border.all(color: AppColors.borderStrong, width: 1.5)
-                    : null,
-                boxShadow: ghost || !_interactive
-                    ? null
-                    : <BoxShadow>[
-                        BoxShadow(
-                          color: (widget.color ?? AppColors.primaryDark)
-                              .withValues(alpha: 0.45),
-                          blurRadius: 18,
-                          offset: const Offset(0, 6),
+        child: AnimatedOpacity(
+          duration: AppDurations.fast,
+          opacity: _interactive ? 1 : 0.5,
+          child: SizedBox(
+            height: _height,
+            width: widget.expand ? double.infinity : null,
+            child: AnimatedBuilder(
+              animation: _press,
+              builder: (BuildContext context, Widget? child) {
+                final double t = _press.value;
+                return CustomPaint(
+                  painter: ghost
+                      ? null
+                      : ButtonSlabPainter(
+                          gradient: gradient,
+                          edgeColor: edge,
+                          radius: _radius,
+                          depth: _depth,
+                          pressed: t,
                         ),
-                      ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  if (widget.icon != null) ...<Widget>[
-                    Icon(widget.icon, size: _fontSize + 4, color: Colors.white),
-                    const SizedBox(width: AppSpacing.sm),
-                  ],
-                  // Scale down rather than ellipsing: a call to action that
-                  // reads "DOUBLE REWARDS — WATC…" is worse than one a point
-                  // or two smaller, and this also absorbs large text settings
-                  // and longer translations.
-                  Flexible(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        widget.label,
-                        maxLines: 1,
-                        textAlign: TextAlign.center,
-                        style: AppTextStyles.button.copyWith(
-                          fontSize: _fontSize,
-                          letterSpacing: widget.size == KdButtonSize.hero
-                              ? 2.5
-                              : 1.1,
-                        ),
-                      ),
+                  foregroundPainter: ghost
+                      ? _GhostRimPainter(radius: _radius, pressed: t)
+                      : null,
+                  child: Padding(
+                    // The label rides down with the face when pressed and sits
+                    // above the bottom edge at rest.
+                    padding: EdgeInsets.only(
+                      top: _depth * t,
+                      bottom: _depth * (1 - t),
                     ),
+                    child: child,
                   ),
-                  if (widget.badge != null) ...<Widget>[
-                    const SizedBox(width: AppSpacing.sm),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.28),
-                        borderRadius: BorderRadius.circular(AppRadius.pill),
-                      ),
-                      child: Text(
-                        widget.badge!,
-                        style: AppTextStyles.caption.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+                );
+              },
+              child: _buildLabel(ghost),
             ),
           ),
         ),
       ),
     );
   }
+
+  Widget _buildLabel(bool ghost) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: widget.size == KdButtonSize.hero
+            ? AppSpacing.xxl
+            : AppSpacing.lg,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          if (widget.icon != null) ...<Widget>[
+            Icon(
+              widget.icon,
+              size: _fontSize + 5,
+              color: Colors.white,
+              shadows: const <Shadow>[
+                Shadow(
+                  color: Colors.black54,
+                  blurRadius: 3,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            const SizedBox(width: AppSpacing.sm),
+          ],
+          // Scale down rather than ellipsing: a call to action reading
+          // "DOUBLE REWARDS — WATC…" is worse than one a point smaller. This
+          // also absorbs large text settings and longer translations.
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: StrokedText(
+                widget.label,
+                strokeWidth: widget.size == KdButtonSize.hero ? 5 : 3.5,
+                style: AppTextStyles.button.copyWith(
+                  fontSize: _fontSize,
+                  letterSpacing: widget.size == KdButtonSize.hero ? 2 : 1,
+                  color: ghost ? AppColors.textSecondary : Colors.white,
+                ),
+              ),
+            ),
+          ),
+          if (widget.badge != null) ...<Widget>[
+            const SizedBox(width: AppSpacing.sm),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.34),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
+              ),
+              child: Text(
+                widget.badge!,
+                style: AppTextStyles.caption.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Hollow slab: a metal rim with nothing inside, for secondary actions.
+class _GhostRimPainter extends CustomPainter {
+  const _GhostRimPainter({required this.radius, required this.pressed});
+
+  final double radius;
+  final double pressed;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final Rect rect = Offset.zero & size;
+    final RRect rrect = RRect.fromRectAndRadius(
+      rect.deflate(2),
+      Radius.circular(radius),
+    );
+
+    canvas.drawRRect(
+      rrect,
+      Paint()..color = Colors.black.withValues(alpha: 0.28 - 0.1 * pressed),
+    );
+    canvas.drawRRect(
+      rrect,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = AppColors.borderStrong,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_GhostRimPainter oldDelegate) =>
+      oldDelegate.pressed != pressed || oldDelegate.radius != radius;
 }
 
 /// Circular icon button used for settings, close and back affordances.
@@ -217,8 +299,8 @@ class KdIconButton extends StatelessWidget {
     required this.icon,
     required this.onPressed,
     this.tooltip,
-    this.size = 44,
-    this.background = AppColors.surface,
+    this.size = 46,
+    this.background,
     super.key,
   });
 
@@ -226,23 +308,51 @@ class KdIconButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String? tooltip;
   final double size;
-  final Color background;
+  final Color? background;
 
   @override
   Widget build(BuildContext context) {
     return Semantics(
       button: true,
       label: tooltip,
-      child: Material(
-        color: background,
-        shape: const CircleBorder(),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onPressed,
-          child: SizedBox(
-            width: size,
-            height: size,
-            child: Icon(icon, size: size * 0.5, color: AppColors.textPrimary),
+      child: GestureDetector(
+        onTap: onPressed,
+        child: Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: <Color>[
+                background ?? AppColors.surfaceHigh,
+                AppColors.surfaceLow,
+              ],
+            ),
+            border: Border.all(
+              color: AppColors.gold.withValues(alpha: 0.55),
+              width: 1.6,
+            ),
+            boxShadow: <BoxShadow>[
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.45),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Icon(
+            icon,
+            size: size * 0.5,
+            color: AppColors.textPrimary,
+            shadows: const <Shadow>[
+              Shadow(
+                color: Colors.black54,
+                blurRadius: 3,
+                offset: Offset(0, 1),
+              ),
+            ],
           ),
         ),
       ),

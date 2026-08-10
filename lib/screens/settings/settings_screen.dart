@@ -7,6 +7,7 @@ import '../../services/service_locator.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/game_ui.dart';
 import '../../widgets/kd_button.dart';
 import '../../widgets/kd_card.dart';
 
@@ -101,9 +102,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (!mounted) return;
 
     services.applySettings();
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Progress reset.')),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Progress reset.')));
   }
 
   @override
@@ -113,13 +114,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: Text('SETTINGS', style: AppTextStyles.headline),
+        title: StrokedText('SETTINGS', style: AppTextStyles.headline),
       ),
       extendBodyBehindAppBar: true,
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppColors.backgroundGradient,
-        ),
+      body: GameBackground(
         child: SafeArea(
           child: PlayerBuilder(
             builder: (BuildContext context, PlayerService player) {
@@ -303,9 +301,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _openUrl(String url) {
     // No url_launcher dependency in the MVP: the rows are hidden entirely until
     // real URLs exist, and wiring the launcher is a one-line change then.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(url)),
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(url)));
   }
 }
 

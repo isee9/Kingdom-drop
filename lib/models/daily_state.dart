@@ -104,10 +104,8 @@ class DailyChallengeState {
     final int typeIndex = (json['type'] as num?)?.toInt() ?? 0;
     return DailyChallengeState(
       day: DayKey.tryParse(json['day'] as String?),
-      type: ChallengeType.values[typeIndex.clamp(
-        0,
-        ChallengeType.values.length - 1,
-      )],
+      type: ChallengeType
+          .values[typeIndex.clamp(0, ChallengeType.values.length - 1)],
       target: (json['target'] as num?)?.toInt() ?? 10,
       progress: (json['progress'] as num?)?.toInt() ?? 0,
       claimed: json['claimed'] as bool? ?? false,

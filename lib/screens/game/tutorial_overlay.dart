@@ -6,6 +6,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/game_icons.dart';
+import '../../widgets/game_ui.dart';
 import '../../widgets/kd_button.dart';
 
 /// First-run tutorial.
@@ -90,14 +91,16 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       icon: Icons.local_fire_department_rounded,
       accent: AppColors.gold,
       title: 'Clear more at once',
-      body: 'Two or more clears from a single piece builds a combo, and every '
+      body:
+          'Two or more clears from a single piece builds a combo, and every '
           'combo multiplies your score.',
     ),
     const _TutorialCard(
       icon: null,
       accent: AppColors.crown,
       title: 'Points become crowns',
-      body: 'Every run pays out crowns based on your score. Crowns are what '
+      body:
+          'Every run pays out crowns based on your score. Crowns are what '
           'rebuild your kingdom.',
       showCrown: true,
     ),
@@ -105,7 +108,8 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
       icon: Icons.castle_rounded,
       accent: AppColors.primaryLight,
       title: 'Rebuild the Forgotten Keep',
-      body: 'Spend crowns on repairs. Finish all five and a new kingdom opens '
+      body:
+          'Spend crowns on repairs. Finish all five and a new kingdom opens '
           'up. That is the whole game — drag, clear, conquer.',
     ),
   ];
@@ -118,8 +122,9 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
 
   /// Step one leaves the game fully interactive; only the prompt is drawn.
   Widget _buildFirstMoveCoach() {
-    final double trayTop =
-        widget.boardOrigin.dy + widget.geometry.extent + 110;
+    // Sit the hint just under the board. Further down and it lands on top of
+    // the booster bar, hiding the very icons it is not talking about.
+    final double hintTop = widget.boardOrigin.dy + widget.geometry.extent + 10;
 
     return IgnorePointer(
       child: Stack(
@@ -130,14 +135,15 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
             top: widget.boardOrigin.dy + widget.geometry.extent * 0.34,
             child: _Prompt(
               title: 'Drag a piece onto the board',
-              body: 'Hold a piece and slide it into place. It cannot be moved '
+              body:
+                  'Hold a piece and slide it into place. It cannot be moved '
                   'once you let go.',
             ),
           ),
           Positioned(
             left: 0,
             right: 0,
-            top: trayTop,
+            top: hintTop,
             child: const Center(child: _BouncingHint()),
           ),
         ],
@@ -197,7 +203,9 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     KdButton(
-                      label: _step >= _cards.length ? 'START PLAYING' : 'GOT IT',
+                      label: _step >= _cards.length
+                          ? 'START PLAYING'
+                          : 'GOT IT',
                       gradient: AppColors.playGradient,
                       size: KdButtonSize.large,
                       expand: true,
@@ -207,10 +215,7 @@ class _TutorialOverlayState extends State<TutorialOverlay> {
                 ),
               ),
               const Spacer(),
-              Text(
-                '$_step of ${_cards.length}',
-                style: AppTextStyles.caption,
-              ),
+              Text('$_step of ${_cards.length}', style: AppTextStyles.caption),
             ],
           ),
         ),
@@ -243,30 +248,19 @@ class _Prompt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: AppColors.surface.withValues(alpha: 0.96),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.primaryLight.withValues(alpha: 0.5)),
-        boxShadow: <BoxShadow>[
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.4),
-            blurRadius: 24,
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: <Widget>[
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: AppTextStyles.title,
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(body, textAlign: TextAlign.center, style: AppTextStyles.body),
-        ],
+    return Padding(
+      padding: EdgeInsets.zero,
+      child: GamePanel(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        studs: true,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            StrokedText(title, style: AppTextStyles.title),
+            const SizedBox(height: AppSpacing.xs),
+            Text(body, textAlign: TextAlign.center, style: AppTextStyles.body),
+          ],
+        ),
       ),
     );
   }
@@ -305,9 +299,7 @@ class _BouncingHintState extends State<_BouncingHint>
         Icons.arrow_upward_rounded,
         size: 34,
         color: AppColors.gold,
-        shadows: <Shadow>[
-          Shadow(color: Colors.black54, blurRadius: 8),
-        ],
+        shadows: <Shadow>[Shadow(color: Colors.black54, blurRadius: 8)],
       ),
     );
   }
