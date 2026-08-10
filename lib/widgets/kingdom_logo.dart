@@ -24,35 +24,44 @@ class KingdomLogo extends StatelessWidget {
 
 /// Paints the mark into any square canvas.
 class KingdomLogoPainter extends CustomPainter {
-  const KingdomLogoPainter({this.withBackground = false});
+  const KingdomLogoPainter({this.withBackground = false, this.marginFraction});
 
   /// Draws the dark royal plate behind the crown. Used for the app icon, where
   /// the mark needs its own ground; off in-app, where the screen provides it.
   final bool withBackground;
 
-  /// Which grid cells are filled, as a 5-wide by 4-tall crown built from
-  /// blocks. Row 0 is the top of the crown.
+  /// Overrides how much of the canvas is left empty around the mark, as a
+  /// fraction of the shorter side. Android's adaptive icon crops to a centred
+  /// safe zone, so its foreground layer needs a much larger margin than a
+  /// square icon does.
+  final double? marginFraction;
+
+  /// Which grid cells are filled: a 5-wide, 4-tall crown built from blocks.
   ///
   /// ```
-  ///   X . X . X     three points
-  ///   X X X X X     the body
-  ///   X X X X X
-  ///   . X X X .     the tapered base
+  ///   X . X . X     three spikes, the gaps reading as the crown's notches
+  ///   X X X X X     body
+  ///   X X X X X     body
+  ///   X X X X X     full-width band
   /// ```
+  ///
+  /// The band runs the full width on purpose. An earlier version tapered it
+  /// inwards, which made the whole mark read as a cross rather than a crown.
   static const List<String> _grid = <String>[
     'X.X.X',
     'XXXXX',
     'XXXXX',
-    '.XXX.',
+    'XXXXX',
   ];
 
-  /// Colour index per cell, so the crown reads as puzzle blocks rather than one
-  /// solid shape. -1 means "use gold".
+  /// Colour index per cell. The crown is mostly gold — it is a crown — with
+  /// coloured spike tips and two gems in the band so it still reads as
+  /// something built out of puzzle blocks.
   static const List<String> _tint = <String>[
     '0.1.2',
     '33333',
-    '44544',
-    '.333.',
+    '33333',
+    '34343',
   ];
 
   @override
@@ -72,9 +81,10 @@ class KingdomLogoPainter extends CustomPainter {
       );
     }
 
-    // The mark occupies the middle 76% of the canvas so an icon has breathing
-    // room inside the platform's rounded mask.
-    final double margin = side * (withBackground ? 0.14 : 0.02);
+    // The mark occupies the middle of the canvas so an icon has breathing room
+    // inside the platform's rounded mask.
+    final double margin =
+        side * (marginFraction ?? (withBackground ? 0.14 : 0.02));
     final double usable = side - margin * 2;
     final double cell = usable / 5;
     final double gridHeight = cell * _grid.length;
@@ -143,5 +153,6 @@ class KingdomLogoPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(KingdomLogoPainter oldDelegate) =>
-      oldDelegate.withBackground != withBackground;
+      oldDelegate.withBackground != withBackground ||
+      oldDelegate.marginFraction != marginFraction;
 }

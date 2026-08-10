@@ -111,15 +111,29 @@ class AudioService {
     }
   }
 
-  /// Looks in the asset manifest for anything under `assets/audio/`.
+  /// Playable file extensions. The check below matches on these rather than on
+  /// the folder alone — `assets/audio/` also contains a README describing the
+  /// slots, and a documentation file must not convince the game it has sound.
+  static const List<String> _audioExtensions = <String>[
+    '.mp3',
+    '.ogg',
+    '.wav',
+    '.m4a',
+    '.aac',
+    '.flac',
+  ];
+
+  /// True when the bundle actually contains a playable audio file.
   Future<bool> _hasBundledAudio() async {
     try {
       final AssetManifest manifest = await AssetManifest.loadFromAssetBundle(
         rootBundle,
       );
-      return manifest
-          .listAssets()
-          .any((String key) => key.startsWith('assets/audio/'));
+      return manifest.listAssets().any((String key) {
+        if (!key.startsWith('assets/audio/')) return false;
+        final String lower = key.toLowerCase();
+        return _audioExtensions.any(lower.endsWith);
+      });
     } catch (error) {
       debugPrint('[audio] could not read the asset manifest: $error');
       return false;

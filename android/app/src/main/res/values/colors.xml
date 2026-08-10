@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Deep royal indigo: the app's background colour, used behind the
+         adaptive icon and by the launch screen so startup has no white flash. -->
+    <color name="ic_launcher_background">#1F1747</color>
+    <color name="kd_background">#15122B</color>
+</resources>
