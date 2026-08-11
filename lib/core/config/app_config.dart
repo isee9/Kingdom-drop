@@ -66,6 +66,46 @@ abstract final class AppConfig {
     defaultValue: 'ca-app-pub-3940256099942544/4411468910',
   );
 
+  // ------------------------------------------------- UMP consent (dev only)
+  /// Turns on UMP debug settings: a forced geography and a test device.
+  ///
+  /// Only useful while developing. It makes the consent form appear as though
+  /// the device were in the EEA, which is otherwise impossible to test from
+  /// outside it.
+  ///
+  /// ```
+  /// --dart-define=UMP_DEBUG=true --dart-define=UMP_TEST_DEVICE_ID=<id>
+  /// ```
+  ///
+  /// The identifier comes from the define, never from source: it is a device
+  /// fingerprint and does not belong in a repository. Find yours by running
+  /// once with UMP_DEBUG=true and reading the ID that the Google Mobile Ads SDK
+  /// prints to logcat ("Use ConsentDebugSettings.Builder().addTestDeviceHashedId
+  /// (...)").
+  static const bool umpDebug = bool.fromEnvironment('UMP_DEBUG');
+
+  /// Hashed device ID that UMP debug settings apply to.
+  ///
+  /// Debug settings do nothing without one, so an empty value is logged as a
+  /// warning rather than silently ignored.
+  static const String umpTestDeviceId = String.fromEnvironment(
+    'UMP_TEST_DEVICE_ID',
+  );
+
+  /// Wipes the stored consent state before asking again.
+  ///
+  /// Consent is remembered across launches, so without this there is exactly
+  /// one chance per install to watch the form appear. Ignored in release
+  /// builds — see [umpResetAllowed].
+  static const bool umpReset = bool.fromEnvironment('UMP_RESET');
+
+  /// [umpReset], but refusing to act in a release build.
+  ///
+  /// Resetting consent in a shipped app would re-ask every player on every
+  /// launch, which is both a terrible experience and a compliance problem. The
+  /// flag is a development tool and this is the guard that keeps it one.
+  static bool get umpResetAllowed => umpReset && !kReleaseMode;
+
   // ------------------------------------------------------------------ IAP
   /// When false, [PurchaseService] grants entitlements locally without touching
   /// the store, so the whole economy is testable offline.

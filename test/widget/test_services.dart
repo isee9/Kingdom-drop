@@ -19,7 +19,11 @@ import 'package:kingdom_drop/theme/app_theme.dart';
 /// No plugins are touched: storage is in-memory, ads and purchases are the mock
 /// implementations the app already ships, and [AudioService.init] is never
 /// called so no platform player is created.
-AppServices createTestServices({SaveData? save, ConsentService? consent}) {
+AppServices createTestServices({
+  SaveData? save,
+  ConsentService? consent,
+  AdService? ads,
+}) {
   const AnalyticsService analytics = NoopAnalyticsService();
   final DebouncedStorage storage = DebouncedStorage(
     InMemoryStorage(),
@@ -44,7 +48,9 @@ AppServices createTestServices({SaveData? save, ConsentService? consent}) {
     // out uses anyway, and it touches no platform channel. A test that cares
     // about the consent-dependent UI passes its own.
     consent: consent ?? const PermissiveConsentService(),
-    ads: MockAdService(analytics: analytics, simulatedDuration: Duration.zero),
+    ads:
+        ads ??
+        MockAdService(analytics: analytics, simulatedDuration: Duration.zero),
     purchases: MockPurchaseService(
       player: player,
       analytics: analytics,

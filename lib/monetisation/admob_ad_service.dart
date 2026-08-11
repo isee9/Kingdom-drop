@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../core/config/app_config.dart';
+import '../core/utils/stage_log.dart';
 import '../services/analytics_service.dart';
 import 'ad_service.dart';
 import 'consent_service.dart';
@@ -30,11 +31,18 @@ class AdMobAdService implements AdService {
   AdMobAdService({
     required AnalyticsService analytics,
     required ConsentService consent,
+    StageLog? log,
   }) : _analytics = analytics,
-       _consent = consent;
+       _consent = consent,
+       _log = log ?? StageLog('ads');
 
   final AnalyticsService _analytics;
   final ConsentService _consent;
+  final StageLog _log;
+
+  /// A bound on `MobileAds.initialize`, which crosses a platform channel and
+  /// has no timeout of its own.
+  static const Duration _sdkInitTimeout = Duration(seconds: 30);
 
   RewardedAd? _rewarded;
   InterstitialAd? _interstitial;
@@ -99,7 +107,9 @@ class AdMobAdService implements AdService {
   /// Brings up the SDK and starts preloading, but only if the gate is open.
   Future<void> _startIfPermitted() async {
     if (!_consent.canRequestAds) {
-      debugPrint('[ads] consent does not permit ad requests — no ads this run');
+      _log.stage('gate.closed', <String, Object?>{
+        'meaning': 'consent does not permit ad requests — no ads this session',
+      });
       return;
     }
     if (_sdkStarted) {
@@ -109,17 +119,23 @@ class AdMobAdService implements AdService {
       return;
     }
 
+    _log.stage('mobileAds.init.begin');
     try {
-      await MobileAds.instance.initialize();
+      await MobileAds.instance.initialize().timeout(_sdkInitTimeout);
+    } on TimeoutException {
+      _log.stage('mobileAds.init.TIMEOUT', <String, Object?>{
+        'after': _sdkInitTimeout.inSeconds,
+      });
+      return;
     } catch (error) {
       // A failed SDK init leaves both slots empty, isRewardedReady false and
       // every show returning failed. That is a degraded game, not a broken one.
-      debugPrint('[ads] MobileAds init failed: $error');
+      _log.stage('mobileAds.init.failed', <String, Object?>{'error': error});
       return;
     }
 
     _sdkStarted = true;
-    debugPrint('[ads] AdMob initialised');
+    _log.stage('mobileAds.init.ok');
     unawaited(_loadRewarded());
     unawaited(_loadInterstitial());
   }

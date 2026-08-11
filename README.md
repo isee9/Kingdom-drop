@@ -465,6 +465,15 @@ Only if that last call returns true does `AdMobAdService` call
 individual ad loads** — starting it is an ad-related data operation, so gating
 only the loads would be too late.
 
+**None of it is on the startup path.** `main` calls `runApp` first and kicks
+off `AppServices.startMonetisation()` from a post-frame callback. That ordering
+is not a preference, it is a fix: UMP once reported a consent form loaded
+(`load_complete ok`) and then never reported it dismissed, and because startup
+awaited that callback the app sat on its launch screen forever. Every await in
+the consent path is now bounded as well — `updateTimeout`, `formTimeout` and an
+outer `gatherDeadline` — so the worst case is a game with no ads, never a game
+that will not start.
+
 Three properties are worth stating explicitly, because they are the ones that
 are easy to get wrong:
 
@@ -487,8 +496,39 @@ re-reads the gate and tells the ad service — so revoking consent stops ads
 immediately rather than at the next launch, and granting it starts them.
 
 The UMP failure paths are covered by `test/monetisation/consent_test.dart`,
-which fakes the platform gateway; the Settings row is covered by
+which fakes the platform gateway — including a form that never calls back at
+all, which is the hang above. `test/services/monetisation_start_test.dart`
+covers the app-level half: `startMonetisation` returns even when the ad service
+never does. The Settings row is covered by
 `test/widget/settings_screen_test.dart`.
+
+### Diagnosing consent on a device
+
+Consent is the hardest part of this app to debug, because it depends on region,
+on a cached state you get one chance to see, and on a form drawn by code you do
+not own. Three build-time flags exist for it, all development-only.
+
+| Define | Does |
+| --- | --- |
+| `UMP_DEBUG=true` | Attaches `ConsentDebugSettings` forcing `DebugGeography.debugGeographyEea`, so the form appears outside the EEA |
+| `UMP_TEST_DEVICE_ID=<hashed id>` | The device the debug settings apply to. **Required** — without it the SDK ignores them silently |
+| `UMP_RESET=true` | Calls `ConsentInformation.instance.reset()` before requesting, so the form can be seen again. Ignored in release builds, see `AppConfig.umpResetAllowed` |
+
+The device ID is a fingerprint and is never committed. Get yours by running
+once with `UMP_DEBUG=true` and reading the ID the Google Mobile Ads SDK prints
+to logcat, then pass it on the next run.
+
+Every stage is logged with a wall-clock time and an elapsed time, tagged for
+filtering:
+
+```
+adb logcat | findstr kd:      # Windows
+adb logcat | grep kd:         # macOS / Linux
+```
+
+The last line printed is the call that did not come back. `form.TIMEOUT` in
+particular means the consent form never reported dismissal — the failure this
+whole arrangement is built to survive.
 
 ---
 

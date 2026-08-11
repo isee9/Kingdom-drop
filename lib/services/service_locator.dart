@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 
 import '../audio/audio_service.dart';
+import '../core/utils/stage_log.dart';
 import '../economy/player_service.dart';
 import '../monetisation/ad_service.dart';
 import '../monetisation/consent_service.dart';
@@ -47,6 +50,42 @@ class AppServices {
   final ChestService chests;
   final InterstitialPacer interstitials;
 
+  /// Brings up consent and the ad SDK, off the app-start critical path.
+  ///
+  /// Deliberately **not** awaited by `main`. Consent shows a form owned by the
+  /// platform, and a form that never reports being dismissed used to leave the
+  /// game on its launch screen forever — the app was waiting on a callback that
+  /// was never coming. Nothing the player can see may depend on this finishing.
+  ///
+  /// It never throws and it always returns. If it fails or times out, the game
+  /// runs with [AdService.isRewardedReady] false and no interstitials: the
+  /// fail-closed outcome, reached without taking the game down with it.
+  Future<void> startMonetisation({
+    Duration timeout = const Duration(seconds: 120),
+  }) async {
+    final StageLog log = StageLog('boot');
+    log.stage('monetisation.begin');
+
+    try {
+      await ads.initialize().timeout(timeout);
+      log.stage('monetisation.ready', <String, Object?>{
+        'canRequestAds': consent.canRequestAds,
+        'rewardedReady': ads.isRewardedReady,
+      });
+    } on TimeoutException {
+      log.stage('monetisation.TIMEOUT', <String, Object?>{
+        'after': timeout.inSeconds,
+        'effect': 'no ads this session; the game is unaffected',
+      });
+    } catch (error) {
+      log.stage('monetisation.failed', <String, Object?>{'error': error});
+    }
+
+    // Applied whatever happened above, so a player who bought Remove Ads keeps
+    // it even if the ad SDK never came up.
+    ads.interstitialsDisabled = player.adsRemoved;
+  }
+
   /// Pushes the player's saved toggles into the services that act on them.
   void applySettings() {
     haptics.enabled = player.settings.hapticsEnabled;
@@ -67,6 +106,9 @@ class AppServices {
 
 /// Builds the whole service graph. Called once from `main`.
 Future<AppServices> bootstrapServices() async {
+  final StageLog boot = StageLog('boot');
+  boot.stage('bootstrap.begin');
+
   final AnalyticsService analytics = createAnalyticsService();
 
   final PrefsStorage prefs = await PrefsStorage.create();
@@ -90,17 +132,31 @@ Future<AppServices> bootstrapServices() async {
   // Consent, then ads — in that order, and never the other way round.
   // AdService.initialize gathers consent through this and refuses to start the
   // ad SDK until it is allowed to.
+  //
+  // Built here but NOT started here: see AppServices.startMonetisation, which
+  // main calls after the first frame. Starting it now would put a platform
+  // consent form in front of an app that has not drawn anything yet, and a
+  // form that never reports dismissal would hang the launch.
   final ConsentService consent = createConsentService();
-
   final AdService ads = createAdService(analytics: analytics, consent: consent);
-  await ads.initialize();
   ads.interstitialsDisabled = player.adsRemoved;
 
   final PurchaseService purchases = createPurchaseService(
     player: player,
     analytics: analytics,
   );
-  await purchases.initialize();
+  // Bounded, unlike before. Store billing is normally fast and the shop wants
+  // it ready, so it stays on the startup path — but it may not hold the app
+  // open indefinitely if the platform never answers.
+  try {
+    await purchases.initialize().timeout(const Duration(seconds: 8));
+  } on TimeoutException {
+    boot.stage('purchases.TIMEOUT', <String, Object?>{
+      'effect': 'shop shows fallback prices until the store answers',
+    });
+  } catch (error) {
+    boot.stage('purchases.failed', <String, Object?>{'error': error});
+  }
 
   final ChestService chests = ChestService();
   final DailyService daily = DailyService(
@@ -108,6 +164,8 @@ Future<AppServices> bootstrapServices() async {
     analytics: analytics,
     chests: chests,
   );
+
+  boot.stage('bootstrap.complete');
 
   return AppServices(
     player: player,
