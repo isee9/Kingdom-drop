@@ -3,6 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../core/config/app_config.dart';
 import '../../economy/player_service.dart';
+import '../../monetisation/consent_service.dart';
 import '../../services/service_locator.dart';
 import '../../theme/app_art.dart';
 import '../../theme/app_colors.dart';
@@ -30,6 +31,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   String _version = '';
   bool _restoring = false;
+  bool _showingPrivacyOptions = false;
 
   @override
   void initState() {
@@ -68,6 +70,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
     );
+  }
+
+  /// Reopens Google's UMP privacy options form.
+  ///
+  /// Only reachable when [ConsentService.privacyOptionsRequired] is true, which
+  /// is the regions where the store rules demand a permanent way back into the
+  /// consent choices. Whatever the player decides in there changes what the ad
+  /// SDK is allowed to do, so the ad service is told immediately rather than
+  /// waiting for the next launch.
+  Future<void> _showPrivacyOptions() async {
+    if (_showingPrivacyOptions) return;
+    setState(() => _showingPrivacyOptions = true);
+
+    final AppServices services = ServiceScope.read(context);
+    final PrivacyOptionsResult result = await services.consent
+        .showPrivacyOptions();
+    await services.ads.applyConsentChange();
+    if (!mounted) return;
+
+    setState(() => _showingPrivacyOptions = false);
+
+    if (result != PrivacyOptionsResult.shown) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Privacy choices are unavailable right now. Check your connection '
+            'and try again.',
+          ),
+        ),
+      );
+    }
   }
 
   Future<void> _confirmReset() async {
@@ -213,6 +246,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     padding: const EdgeInsets.all(AppSpacing.md),
                     child: Column(
                       children: <Widget>[
+                        // Only in regions where UMP says a permanent entry
+                        // point is required. Elsewhere this would open a form
+                        // that does not exist.
+                        if (services.consent.privacyOptionsRequired)
+                          _ActionRow(
+                            icon: Icons.tune_rounded,
+                            label: _showingPrivacyOptions
+                                ? 'Opening…'
+                                : 'Privacy choices',
+                            onTap: _showPrivacyOptions,
+                          ),
                         if (AppConfig.privacyPolicyUrl.isNotEmpty)
                           _ActionRow(
                             icon: Icons.privacy_tip_rounded,

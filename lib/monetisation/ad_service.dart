@@ -4,11 +4,11 @@ import 'package:flutter/foundation.dart';
 
 import '../core/config/app_config.dart';
 import '../services/analytics_service.dart';
+import 'consent_service.dart';
 // Chosen at compile time: the io version returns the AdMob-backed service on
 // Android and iOS, the stub returns null everywhere else. This is what keeps
 // google_mobile_ads out of the browser and desktop builds.
-import 'live_services_stub.dart'
-    if (dart.library.io) 'live_services_io.dart';
+import 'live_services_stub.dart' if (dart.library.io) 'live_services_io.dart';
 
 /// Where a rewarded ad was offered from. Passed to analytics so the value of
 /// each placement can be compared later.
@@ -55,6 +55,15 @@ abstract interface class AdService {
   /// True when interstitials are suppressed — the player bought Remove Ads.
   bool get interstitialsDisabled;
   set interstitialsDisabled(bool value);
+
+  /// Re-evaluates the consent gate after the player changed their privacy
+  /// choices mid-session.
+  ///
+  /// Without this, a player who opens the privacy form and grants consent gets
+  /// no ads until they restart the app, and — the direction that actually
+  /// matters — a player who *revokes* consent keeps being served ads for the
+  /// rest of the session.
+  Future<void> applyConsentChange();
 
   void dispose();
 }
@@ -122,6 +131,11 @@ class MockAdService implements AdService {
   }
 
   @override
+  Future<void> applyConsentChange() async {
+    // Nothing to gate: the mock never talks to an ad network.
+  }
+
+  @override
   Future<bool> showInterstitialAd() async {
     if (_interstitialsDisabled) return false;
     _analytics.log(AnalyticsEvents.interstitialShown, <String, Object?>{
@@ -171,9 +185,18 @@ class InterstitialPacer {
 /// Live AdMob only when `ADS_ENABLED=true` was passed at build time *and* the
 /// platform supports it. Anything else falls back to the mock, so a
 /// misconfigured release is a game without ads rather than a crash on launch.
-AdService createAdService({required AnalyticsService analytics}) {
+///
+/// [consent] is the UMP gate. The live service will not initialise the ad SDK
+/// until that gate says it may.
+AdService createAdService({
+  required AnalyticsService analytics,
+  required ConsentService consent,
+}) {
   if (AppConfig.adsEnabled) {
-    final AdService? live = createLiveAdService(analytics: analytics);
+    final AdService? live = createLiveAdService(
+      analytics: analytics,
+      consent: consent,
+    );
     if (live != null) return live;
   }
   return MockAdService(analytics: analytics);

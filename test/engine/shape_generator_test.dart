@@ -121,14 +121,12 @@ void main() {
     });
 
     test('is deterministic for a given seed', () {
-      final List<String> first = ShapeGenerator(random: Random(99))
-          .generateSet(Board())
-          .map((TrayPiece p) => p.shape.id)
-          .toList();
-      final List<String> second = ShapeGenerator(random: Random(99))
-          .generateSet(Board())
-          .map((TrayPiece p) => p.shape.id)
-          .toList();
+      final List<String> first = ShapeGenerator(
+        random: Random(99),
+      ).generateSet(Board()).map((TrayPiece p) => p.shape.id).toList();
+      final List<String> second = ShapeGenerator(
+        random: Random(99),
+      ).generateSet(Board()).map((TrayPiece p) => p.shape.id).toList();
 
       expect(first, second);
     });
@@ -213,8 +211,9 @@ void main() {
       int largeOnCongested = 0;
 
       for (int seed = 0; seed < 400; seed++) {
-        for (final TrayPiece p
-            in ShapeGenerator(random: Random(seed)).generateSet(Board())) {
+        for (final TrayPiece p in ShapeGenerator(
+          random: Random(seed),
+        ).generateSet(Board())) {
           if (p.shape.blockCount >= 5) largeOnEmpty++;
         }
         for (final TrayPiece p in ShapeGenerator(
@@ -240,8 +239,9 @@ void main() {
       int small = 0;
       int total = 0;
       for (int seed = 0; seed < 500; seed++) {
-        for (final TrayPiece p
-            in ShapeGenerator(random: Random(seed)).generateSet(Board())) {
+        for (final TrayPiece p in ShapeGenerator(
+          random: Random(seed),
+        ).generateSet(Board())) {
           total++;
           if (p.shape.blockCount <= 4) small++;
         }

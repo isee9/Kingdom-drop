@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../audio/audio_service.dart';
 import '../economy/player_service.dart';
 import '../monetisation/ad_service.dart';
+import '../monetisation/consent_service.dart';
 import '../monetisation/purchase_service.dart';
 import '../progression/chest_service.dart';
 import '../progression/daily_service.dart';
@@ -22,6 +23,7 @@ class AppServices {
     required this.audio,
     required this.haptics,
     required this.ads,
+    required this.consent,
     required this.purchases,
     required this.daily,
     required this.chests,
@@ -34,6 +36,12 @@ class AppServices {
   final AudioService audio;
   final HapticService haptics;
   final AdService ads;
+
+  /// The UMP consent gate in front of advertising. Settings reads
+  /// [ConsentService.privacyOptionsRequired] from it to decide whether to offer
+  /// a "Privacy choices" row.
+  final ConsentService consent;
+
   final PurchaseService purchases;
   final DailyService daily;
   final ChestService chests;
@@ -79,7 +87,12 @@ Future<AppServices> bootstrapServices() async {
     enabled: player.settings.hapticsEnabled,
   );
 
-  final AdService ads = createAdService(analytics: analytics);
+  // Consent, then ads — in that order, and never the other way round.
+  // AdService.initialize gathers consent through this and refuses to start the
+  // ad SDK until it is allowed to.
+  final ConsentService consent = createConsentService();
+
+  final AdService ads = createAdService(analytics: analytics, consent: consent);
   await ads.initialize();
   ads.interstitialsDisabled = player.adsRemoved;
 
@@ -103,6 +116,7 @@ Future<AppServices> bootstrapServices() async {
     audio: audio,
     haptics: haptics,
     ads: ads,
+    consent: consent,
     purchases: purchases,
     daily: daily,
     chests: chests,

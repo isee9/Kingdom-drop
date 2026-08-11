@@ -72,13 +72,15 @@ class StorePurchaseService implements PurchaseService {
     // session is not missed.
     _subscription = _iap.purchaseStream.listen(
       _onPurchases,
-      onError: (Object error) => debugPrint('[iap] purchase stream error: $error'),
+      onError: (Object error) =>
+          debugPrint('[iap] purchase stream error: $error'),
     );
 
     try {
-      final iap.ProductDetailsResponse response = await _iap.queryProductDetails(
-        ProductCatalog.all.map((Product p) => p.id).toSet(),
-      );
+      final iap.ProductDetailsResponse response = await _iap
+          .queryProductDetails(
+            ProductCatalog.all.map((Product p) => p.id).toSet(),
+          );
 
       for (final iap.ProductDetails d in response.productDetails) {
         _details[d.id] = d;
@@ -178,7 +180,8 @@ class StorePurchaseService implements PurchaseService {
         return PurchaseResult(
           PurchaseStatus.failed,
           product: product,
-          message: 'The store did not respond. If you were charged, the '
+          message:
+              'The store did not respond. If you were charged, the '
               'purchase will be applied next time you open the game.',
         );
       },
@@ -232,7 +235,9 @@ class StorePurchaseService implements PurchaseService {
               <String, Object?>{'product': product.id, 'mock': false},
             );
           } else {
-            debugPrint('[iap] unknown product delivered: ${purchase.productID}');
+            debugPrint(
+              '[iap] unknown product delivered: ${purchase.productID}',
+            );
           }
 
           _settle(PurchaseResult(PurchaseStatus.success, product: product));

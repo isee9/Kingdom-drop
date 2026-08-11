@@ -7,6 +7,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../core/config/app_config.dart';
 import '../services/analytics_service.dart';
 import 'ad_service.dart';
+import 'consent_service.dart';
 
 /// The real [AdService], backed by Google Mobile Ads.
 ///
@@ -20,16 +21,31 @@ import 'ad_service.dart';
 /// throwing, and the calling screens already treat that as "grant nothing, say
 /// nothing, carry on". A player who taps "double my crowns" and hits a no-fill
 /// keeps their single helping.
+///
+/// Consent comes first. [initialize] gathers it through [ConsentService] and
+/// will not call `MobileAds.initialize` at all unless the gate opens —
+/// initialising the SDK is itself an ad-related data operation, so gating only
+/// the individual ad loads would be too late.
 class AdMobAdService implements AdService {
-  AdMobAdService({required AnalyticsService analytics}) : _analytics = analytics;
+  AdMobAdService({
+    required AnalyticsService analytics,
+    required ConsentService consent,
+  }) : _analytics = analytics,
+       _consent = consent;
 
   final AnalyticsService _analytics;
+  final ConsentService _consent;
 
   RewardedAd? _rewarded;
   InterstitialAd? _interstitial;
 
   bool _interstitialsDisabled = false;
   bool _initialised = false;
+
+  /// True once `MobileAds.initialize` has succeeded. Separate from
+  /// [_initialised], which only records that [initialize] ran — consent may
+  /// have blocked the SDK from starting at all.
+  bool _sdkStarted = false;
 
   /// True while a load is in flight, so a burst of failures cannot start ten
   /// overlapping requests.
@@ -57,6 +73,42 @@ class AdMobAdService implements AdService {
     if (_initialised) return;
     _initialised = true;
 
+    // Consent before anything else, every launch. This is the call that may
+    // put a form in front of the player.
+    await _consent.gather();
+    await _startIfPermitted();
+  }
+
+  @override
+  Future<void> applyConsentChange() async {
+    if (_consent.canRequestAds) {
+      // Newly granted: bring the SDK up if it was never started.
+      await _startIfPermitted();
+      return;
+    }
+
+    // Newly revoked. Drop everything loaded — an ad already in the slot was
+    // fetched under the old permission and must not be shown now.
+    debugPrint('[ads] consent withdrawn — discarding loaded ads');
+    unawaited(_rewarded?.dispose() ?? Future<void>.value());
+    unawaited(_interstitial?.dispose() ?? Future<void>.value());
+    _rewarded = null;
+    _interstitial = null;
+  }
+
+  /// Brings up the SDK and starts preloading, but only if the gate is open.
+  Future<void> _startIfPermitted() async {
+    if (!_consent.canRequestAds) {
+      debugPrint('[ads] consent does not permit ad requests — no ads this run');
+      return;
+    }
+    if (_sdkStarted) {
+      // Already running; just top up whatever is empty.
+      unawaited(_loadRewarded());
+      unawaited(_loadInterstitial());
+      return;
+    }
+
     try {
       await MobileAds.instance.initialize();
     } catch (error) {
@@ -66,6 +118,7 @@ class AdMobAdService implements AdService {
       return;
     }
 
+    _sdkStarted = true;
     debugPrint('[ads] AdMob initialised');
     unawaited(_loadRewarded());
     unawaited(_loadInterstitial());
@@ -77,10 +130,17 @@ class AdMobAdService implements AdService {
 
   Future<void> _loadRewarded() async {
     if (_rewarded != null || _loadingRewarded) return;
+    // Re-checked on every load, not just at startup: a back-off retry scheduled
+    // before the player revoked consent would otherwise still fire.
+    if (!_consent.canRequestAds || !_sdkStarted) return;
     _loadingRewarded = true;
 
     await RewardedAd.load(
       adUnitId: _rewardedUnitId,
+      // A plain request on purpose. When a player declines personalisation but
+      // UMP still permits ads, Google reads the stored consent signals and
+      // serves non-personalised ads itself. Setting an npa flag by hand here
+      // would second-guess that and can conflict with what UMP recorded.
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (RewardedAd ad) {
@@ -91,7 +151,9 @@ class AdMobAdService implements AdService {
         onAdFailedToLoad: (LoadAdError error) {
           _loadingRewarded = false;
           _rewardedFailures++;
-          debugPrint('[ads] rewarded load failed: ${error.code} ${error.message}');
+          debugPrint(
+            '[ads] rewarded load failed: ${error.code} ${error.message}',
+          );
           // Keep trying in the background so the button becomes live again if
           // this was a transient no-fill.
           Future<void>.delayed(_backoff(_rewardedFailures), _loadRewarded);
@@ -103,6 +165,7 @@ class AdMobAdService implements AdService {
   Future<void> _loadInterstitial() async {
     if (_interstitial != null || _loadingInterstitial) return;
     if (_interstitialsDisabled) return;
+    if (!_consent.canRequestAds || !_sdkStarted) return;
     _loadingInterstitial = true;
 
     await InterstitialAd.load(
@@ -120,7 +183,10 @@ class AdMobAdService implements AdService {
           debugPrint(
             '[ads] interstitial load failed: ${error.code} ${error.message}',
           );
-          Future<void>.delayed(_backoff(_interstitialFailures), _loadInterstitial);
+          Future<void>.delayed(
+            _backoff(_interstitialFailures),
+            _loadInterstitial,
+          );
         },
       ),
     );
@@ -151,7 +217,9 @@ class AdMobAdService implements AdService {
       'placement': placement.id,
     });
 
-    final RewardedAd? ad = _rewarded;
+    // Belt and braces alongside the null check: consent can be revoked between
+    // an ad loading and the player tapping the button that shows it.
+    final RewardedAd? ad = _consent.canRequestAds ? _rewarded : null;
     if (ad == null) {
       _analytics.log(AnalyticsEvents.rewardedAdFailed, <String, Object?>{
         'placement': placement.id,
@@ -207,6 +275,7 @@ class AdMobAdService implements AdService {
   @override
   Future<bool> showInterstitialAd() async {
     if (_interstitialsDisabled) return false;
+    if (!_consent.canRequestAds) return false;
 
     final InterstitialAd? ad = _interstitial;
     if (ad == null) {

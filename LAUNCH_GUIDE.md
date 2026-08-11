@@ -309,6 +309,20 @@ files have a `CHANGE ME` comment marking the spot:
 - `android/app/src/main/AndroidManifest.xml`
 - `ios/Runner/Info.plist`
 
+**7.3b Publish your consent message.** In AdMob, go to **Privacy & messaging →
+European regulations** and publish a message targeting the EEA, the UK and
+Switzerland. This is a legal requirement, not a nicety: in those regions you may
+not request an ad until the player has been asked.
+
+The app already does its half. On every launch it asks Google whether this
+player needs to be asked, shows your message if so, and refuses to start the ad
+system at all until Google says it may. If a player declines, they still get the
+game — just no ads. And in the regions that require it, a **Privacy choices**
+row appears in Settings by itself so they can change their mind later.
+
+Nothing to configure for any of that. But if you never publish the message,
+players in Europe see no ads at all, and you will spend a while wondering why.
+
 **7.4 Build with money switched on.** The ad unit IDs are *not* stored in the
 project — they are passed in when you build, so they never end up on GitHub:
 

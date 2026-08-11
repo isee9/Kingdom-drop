@@ -36,9 +36,13 @@ void main() {
       grantEntitlement(player, pack);
 
       expect(player.coins, before + pack.coins);
-      expect(player.ownsProduct(pack.id), isFalse,
-          reason: 'a consumable must not be recorded as owned, or the player '
-              'could never buy it again');
+      expect(
+        player.ownsProduct(pack.id),
+        isFalse,
+        reason:
+            'a consumable must not be recorded as owned, or the player '
+            'could never buy it again',
+      );
     });
 
     test('a non-consumable is recorded as owned', () {
@@ -53,7 +57,8 @@ void main() {
       final Product starter = ProductCatalog.byId('starter_pack')!;
       final int coinsBefore = player.coins;
       final Map<BoosterType, int> boostersBefore = <BoosterType, int>{
-        for (final BoosterType t in BoosterType.values) t: player.boosterCount(t),
+        for (final BoosterType t in BoosterType.values)
+          t: player.boosterCount(t),
       };
 
       grantEntitlement(player, starter);
@@ -125,15 +130,19 @@ void main() {
       final List<String> restored = await service.restorePurchases();
 
       expect(restored, contains('remove_ads'));
-      expect(restored, isNot(contains('coins_500')),
-          reason: 'consumables are never restored — that would be free coins');
+      expect(
+        restored,
+        isNot(contains('coins_500')),
+        reason: 'consumables are never restored — that would be free coins',
+      );
     });
   });
 
   group('The catalogue', () {
     test('every product ID is unique', () {
-      final List<String> ids =
-          ProductCatalog.all.map((Product p) => p.id).toList();
+      final List<String> ids = ProductCatalog.all
+          .map((Product p) => p.id)
+          .toList();
       expect(ids.toSet().length, ids.length);
     });
 
@@ -156,7 +165,8 @@ void main() {
       // A product that grants nothing is a charge with no delivery — the exact
       // shape of complaint that gets an app pulled.
       for (final Product p in ProductCatalog.all) {
-        final bool givesSomething = p.coins > 0 ||
+        final bool givesSomething =
+            p.coins > 0 ||
             p.crowns > 0 ||
             p.boosters.isNotEmpty ||
             p.kind == ProductKind.nonConsumable;

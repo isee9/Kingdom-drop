@@ -3,6 +3,7 @@ import 'package:kingdom_drop/audio/audio_service.dart';
 import 'package:kingdom_drop/economy/player_service.dart';
 import 'package:kingdom_drop/models/save_data.dart';
 import 'package:kingdom_drop/monetisation/ad_service.dart';
+import 'package:kingdom_drop/monetisation/consent_service.dart';
 import 'package:kingdom_drop/monetisation/purchase_service.dart';
 import 'package:kingdom_drop/progression/chest_service.dart';
 import 'package:kingdom_drop/progression/daily_service.dart';
@@ -18,7 +19,7 @@ import 'package:kingdom_drop/theme/app_theme.dart';
 /// No plugins are touched: storage is in-memory, ads and purchases are the mock
 /// implementations the app already ships, and [AudioService.init] is never
 /// called so no platform player is created.
-AppServices createTestServices({SaveData? save}) {
+AppServices createTestServices({SaveData? save, ConsentService? consent}) {
   const AnalyticsService analytics = NoopAnalyticsService();
   final DebouncedStorage storage = DebouncedStorage(
     InMemoryStorage(),
@@ -39,20 +40,17 @@ AppServices createTestServices({SaveData? save}) {
     analytics: analytics,
     audio: AudioService(),
     haptics: HapticService(enabled: false),
-    ads: MockAdService(
-      analytics: analytics,
-      simulatedDuration: Duration.zero,
-    ),
+    // No UMP in tests: the permissive gate is what a build with ads compiled
+    // out uses anyway, and it touches no platform channel. A test that cares
+    // about the consent-dependent UI passes its own.
+    consent: consent ?? const PermissiveConsentService(),
+    ads: MockAdService(analytics: analytics, simulatedDuration: Duration.zero),
     purchases: MockPurchaseService(
       player: player,
       analytics: analytics,
       simulatedDelay: Duration.zero,
     ),
-    daily: DailyService(
-      player: player,
-      analytics: analytics,
-      chests: chests,
-    ),
+    daily: DailyService(player: player, analytics: analytics, chests: chests),
     chests: chests,
     interstitials: InterstitialPacer(),
   );

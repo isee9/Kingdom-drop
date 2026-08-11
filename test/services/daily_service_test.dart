@@ -48,14 +48,8 @@ void main() {
     });
 
     test('counts whole days, including across a month boundary', () {
-      expect(
-        const DayKey(2026, 1, 31).daysUntil(const DayKey(2026, 2, 1)),
-        1,
-      );
-      expect(
-        const DayKey(2026, 2, 28).daysUntil(const DayKey(2026, 3, 3)),
-        3,
-      );
+      expect(const DayKey(2026, 1, 31).daysUntil(const DayKey(2026, 2, 1)), 1);
+      expect(const DayKey(2026, 2, 28).daysUntil(const DayKey(2026, 3, 3)), 3);
       expect(
         const DayKey(2026, 1, 1).daysUntil(const DayKey(2025, 12, 31)),
         -1,
@@ -93,9 +87,7 @@ void main() {
       final ({PlayerService player, DailyService daily}) setup = makeDaily();
       final DateTime day1 = DateTime(2026, 1, 1, 9);
 
-      final DailyRewardConfig? reward = setup.daily.claimDailyReward(
-        now: day1,
-      );
+      final DailyRewardConfig? reward = setup.daily.claimDailyReward(now: day1);
 
       expect(reward, isNotNull);
       expect(setup.player.coins, EconomyConfig.dailyRewards[0].coins);
@@ -105,7 +97,10 @@ void main() {
         setup.daily.canClaimDailyReward(now: DateTime(2026, 1, 1, 23)),
         isFalse,
       );
-      expect(setup.daily.claimDailyReward(now: DateTime(2026, 1, 1, 23)), isNull);
+      expect(
+        setup.daily.claimDailyReward(now: DateTime(2026, 1, 1, 23)),
+        isNull,
+      );
       expect(setup.player.coins, EconomyConfig.dailyRewards[0].coins);
     });
 
@@ -142,10 +137,7 @@ void main() {
         setup.daily.claimDailyReward(now: DateTime(2026, 1, day));
       }
 
-      expect(
-        setup.daily.statusFor(now: DateTime(2026, 1, 8)).claimableDay,
-        1,
-      );
+      expect(setup.daily.statusFor(now: DateTime(2026, 1, 8)).claimableDay, 1);
     });
 
     test('missing a day restarts the streak and says so', () {
@@ -169,7 +161,10 @@ void main() {
       final int coinsAfterClaim = setup.player.coins;
 
       // Device clock rolled back a week.
-      expect(setup.daily.canClaimDailyReward(now: DateTime(2026, 6, 3)), isFalse);
+      expect(
+        setup.daily.canClaimDailyReward(now: DateTime(2026, 6, 3)),
+        isFalse,
+      );
       expect(setup.daily.claimDailyReward(now: DateTime(2026, 6, 3)), isNull);
       expect(setup.player.coins, coinsAfterClaim);
     });
@@ -202,10 +197,16 @@ void main() {
     test('debug reset makes the reward claimable again', () {
       final ({PlayerService player, DailyService daily}) setup = makeDaily();
       setup.daily.claimDailyReward(now: DateTime(2026, 4, 1));
-      expect(setup.daily.canClaimDailyReward(now: DateTime(2026, 4, 1)), isFalse);
+      expect(
+        setup.daily.canClaimDailyReward(now: DateTime(2026, 4, 1)),
+        isFalse,
+      );
 
       setup.daily.debugResetDailyReward();
-      expect(setup.daily.canClaimDailyReward(now: DateTime(2026, 4, 1)), isTrue);
+      expect(
+        setup.daily.canClaimDailyReward(now: DateTime(2026, 4, 1)),
+        isTrue,
+      );
     });
   });
 

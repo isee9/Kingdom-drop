@@ -9,8 +9,9 @@ import 'package:kingdom_drop/models/save_data.dart';
 
 /// Encodes and decodes through real JSON, which is what actually happens on
 /// disk — a model that only round-trips through a Dart map can still break.
-SaveData roundTrip(SaveData original) =>
-    SaveData.fromJson(jsonDecode(jsonEncode(original.toJson())) as Map<String, dynamic>);
+SaveData roundTrip(SaveData original) => SaveData.fromJson(
+  jsonDecode(jsonEncode(original.toJson())) as Map<String, dynamic>,
+);
 
 void main() {
   group('Fresh save', () {
@@ -167,7 +168,10 @@ void main() {
 
       final SaveData restored = roundTrip(original);
 
-      expect(restored.ownedProducts, containsAll(<String>['remove_ads', 'starter_pack']));
+      expect(
+        restored.ownedProducts,
+        containsAll(<String>['remove_ads', 'starter_pack']),
+      );
       expect(restored.settings.musicEnabled, isFalse);
       expect(restored.settings.soundEnabled, isTrue);
       expect(restored.settings.hapticsEnabled, isFalse);
@@ -197,12 +201,15 @@ void main() {
       expect(data.settings.hapticsEnabled, isTrue);
     });
 
-    test('an unparsable install date falls back to now rather than failing', () {
-      final SaveData data = SaveData.fromJson(<String, dynamic>{
-        'installedAt': 'not a date',
-      });
-      expect(data.installedAt, isNotNull);
-    });
+    test(
+      'an unparsable install date falls back to now rather than failing',
+      () {
+        final SaveData data = SaveData.fromJson(<String, dynamic>{
+          'installedAt': 'not a date',
+        });
+        expect(data.installedAt, isNotNull);
+      },
+    );
 
     test('an unknown booster key is dropped, not fatal', () {
       final SaveData data = SaveData.fromJson(<String, dynamic>{

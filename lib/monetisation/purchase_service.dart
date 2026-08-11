@@ -7,8 +7,7 @@ import '../economy/player_service.dart';
 import '../services/analytics_service.dart';
 // See the note in ad_service.dart: the io version returns the store-backed
 // service on Android and iOS, the stub returns null everywhere else.
-import 'live_services_stub.dart'
-    if (dart.library.io) 'live_services_io.dart';
+import 'live_services_stub.dart' if (dart.library.io) 'live_services_io.dart';
 import 'products.dart';
 
 enum PurchaseStatus { success, cancelled, failed, alreadyOwned, unavailable }

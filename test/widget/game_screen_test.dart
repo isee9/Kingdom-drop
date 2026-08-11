@@ -36,10 +36,7 @@ void main() {
     TestWidgetsFlutterBinding.ensureInitialized();
   });
 
-  Future<AppServices> pumpGame(
-    WidgetTester tester, {
-    SaveData? save,
-  }) async {
+  Future<AppServices> pumpGame(WidgetTester tester, {SaveData? save}) async {
     tester.view
       ..physicalSize = phone
       ..devicePixelRatio = 1.0;
@@ -83,7 +80,9 @@ void main() {
         ..devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
 
-      final AppServices services = createTestServices(save: experiencedPlayer());
+      final AppServices services = createTestServices(
+        save: experiencedPlayer(),
+      );
       await tester.pumpWidget(
         wrapForTest(child: const GameScreen(), services: services),
       );
@@ -100,7 +99,9 @@ void main() {
         ..devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
 
-      final AppServices services = createTestServices(save: experiencedPlayer());
+      final AppServices services = createTestServices(
+        save: experiencedPlayer(),
+      );
       await tester.pumpWidget(
         wrapForTest(child: const GameScreen(), services: services),
       );
@@ -207,8 +208,7 @@ void main() {
     ) async {
       await pumpGame(tester);
 
-      final int hammers =
-          EconomyConfig.startingBoosters[BoosterType.hammer]!;
+      final int hammers = EconomyConfig.startingBoosters[BoosterType.hammer]!;
       expect(find.text('x$hammers'), findsWidgets);
     });
   });

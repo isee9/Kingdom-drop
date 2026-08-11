@@ -143,7 +143,10 @@ class _IconGeneratorAppState extends State<_IconGeneratorApp> {
     bool foregroundOnly = false,
   }) async {
     try {
-      final ui.Image image = await _render(size, foregroundOnly: foregroundOnly);
+      final ui.Image image = await _render(
+        size,
+        foregroundOnly: foregroundOnly,
+      );
       final ByteData? data = await image.toByteData(
         format: ui.ImageByteFormat.png,
       );

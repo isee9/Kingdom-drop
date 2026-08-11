@@ -6,7 +6,11 @@ import 'package:kingdom_drop/game/engine/shape.dart';
 
 /// Builds a throwaway group list of [count] entries, all of [type] unless
 /// [mixed] is set, in which case the second one is a column.
-List<ClearGroup> groups(int count, {ClearType type = ClearType.row, bool mixed = false}) {
+List<ClearGroup> groups(
+  int count, {
+  ClearType type = ClearType.row,
+  bool mixed = false,
+}) {
   return <ClearGroup>[
     for (int i = 0; i < count; i++)
       ClearGroup(
@@ -48,7 +52,8 @@ void main() {
     test('each additional simultaneous clear is worth more than the last', () {
       int previousStep = 0;
       for (int n = 2; n <= 6; n++) {
-        final int step = ScoreCalculator.basePointsForClears(n) -
+        final int step =
+            ScoreCalculator.basePointsForClears(n) -
             ScoreCalculator.basePointsForClears(n - 1);
         expect(step, greaterThan(previousStep));
         previousStep = step;

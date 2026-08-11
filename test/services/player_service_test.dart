@@ -251,11 +251,7 @@ void main() {
     test('costs rise from one kingdom to the next', () {
       int previous = 0;
       for (final KingdomDefinition kingdom in KingdomConfig.kingdoms) {
-        expect(
-          kingdom.totalCost,
-          greaterThan(previous),
-          reason: kingdom.name,
-        );
+        expect(kingdom.totalCost, greaterThan(previous), reason: kingdom.name);
         previous = kingdom.totalCost;
       }
     });
@@ -349,10 +345,7 @@ void main() {
         );
       }
 
-      expect(
-        player.coins,
-        AchievementCatalog.byId('first_clear')!.rewardCoins,
-      );
+      expect(player.coins, AchievementCatalog.byId('first_clear')!.rewardCoins);
     });
 
     test('stay locked until the target is reached', () {

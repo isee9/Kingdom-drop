@@ -203,7 +203,7 @@ lib/
     widgets/      board, tray, HUD, booster bar, block painting
     fx/           Flame particle layer
   models/         save data, boosters, achievements, daily state
-  monetisation/   AdService, PurchaseService, product catalogue
+  monetisation/   AdService, PurchaseService, UMP consent, product catalogue
   progression/    levels, kingdoms, chests, daily reward and challenge
   screens/        one folder per screen
   services/       analytics, haptics, service locator
@@ -415,33 +415,22 @@ and persist.
 
 The game ships in **mock ad mode**: pressing "Watch Ad" resolves successfully
 after a short delay, so every reward path is exercisable with no network, no
-account and no SDK. Production ad unit IDs are never committed — they are
-supplied at build time.
+account and no SDK. The AdMob-backed implementation is already written
+(`lib/monetisation/admob_ad_service.dart`) — it is selected at build time.
+Production ad unit IDs are never committed; they are supplied as defines.
 
 1. Create an AdMob account and register the app for both platforms.
-2. Add the SDK:
-   ```bash
-   flutter pub add google_mobile_ads
-   ```
-3. Add your AdMob **app ID** to the native projects (this one is not secret and
-   does have to live in the manifest/plist):
-   - `android/app/src/main/AndroidManifest.xml`, inside `<application>`:
-     ```xml
-     <meta-data
-         android:name="com.google.android.gms.ads.APPLICATION_ID"
-         android:value="ca-app-pub-XXXXXXXX~YYYYYYYY"/>
-     ```
-   - `ios/Runner/Info.plist`:
-     ```xml
-     <key>GADApplicationIdentifier</key>
-     <string>ca-app-pub-XXXXXXXX~YYYYYYYY</string>
-     ```
-4. Write an `AdService` implementation backed by `google_mobile_ads` and return
-   it from `createAdService()` in `lib/monetisation/ad_service.dart`. The
-   interface is four methods; the mock next to it shows the expected behaviour,
-   including what each result value means.
-5. Uncomment the ads keep-rules in `android/app/proguard-rules.pro`.
-6. Build with the unit IDs supplied as defines:
+2. Publish a **European Regulations** consent message in the AdMob console
+   (Privacy & messaging → European regulations), targeted at the EEA, the UK
+   and Switzerland. The code below is what shows it; without the message there
+   is nothing to show and UMP will refuse ad requests in those regions.
+3. Replace the AdMob **app ID** in both native projects. It is not a secret and
+   does have to live there in plain text; both files carry a `CHANGE ME`
+   comment marking the spot, currently holding Google's public sample ID:
+   - `android/app/src/main/AndroidManifest.xml` →
+     `com.google.android.gms.ads.APPLICATION_ID`
+   - `ios/Runner/Info.plist` → `GADApplicationIdentifier`
+4. Build with the unit IDs supplied as defines:
    ```bash
    flutter build appbundle --release \
      --dart-define=ADS_ENABLED=true \
@@ -449,7 +438,7 @@ supplied at build time.
      --dart-define=ADMOB_INTERSTITIAL_ANDROID=ca-app-pub-XXXX/YYYY
    ```
 
-Until step 6, `AppConfig.adsEnabled` is false and the mock stays in charge. The
+Until step 4, `AppConfig.adsEnabled` is false and the mock stays in charge. The
 defaults in `AppConfig` are Google's public **test** IDs, which only ever serve
 test creatives.
 
@@ -457,6 +446,49 @@ Interstitial pacing lives in `InterstitialPacer` — no ads for a new player's
 first few games, then at most one every few games, and none at all for players
 who bought Remove Ads. Rewarded ads always remain available, because the player
 chooses those.
+
+### Consent (UMP)
+
+Google's User Messaging Platform decides, per region, whether a player must be
+asked before any ad request is made. `lib/monetisation/consent_service.dart`
+holds the gate and `ump_consent_service.dart` implements it against the UMP
+APIs bundled with `google_mobile_ads` — there is no extra package to add.
+
+Every launch runs the sequence Google specifies, in order:
+
+1. `requestConsentInfoUpdate()`
+2. `loadAndShowConsentFormIfRequired()` — this is what puts the form on screen
+3. `canRequestAds()`
+
+Only if that last call returns true does `AdMobAdService` call
+`MobileAds.initialize()`. **Initialising the SDK is itself gated, not just the
+individual ad loads** — starting it is an ad-related data operation, so gating
+only the loads would be too late.
+
+Three properties are worth stating explicitly, because they are the ones that
+are easy to get wrong:
+
+- **It fails closed.** A network failure, a platform error, an unreadable
+  channel — all end with no ads. The one deliberate exception is that a failed
+  info update still reads the *cached* `canRequestAds`, because UMP remembers
+  the previous session: someone who consented yesterday and opened the app on a
+  train today should still see ads.
+- **The ad request is plain.** When a player declines personalisation but UMP
+  still permits ads, Google reads the stored consent signals and serves
+  non-personalised ads itself. Setting an `npa` flag by hand would second-guess
+  that and can conflict with what UMP recorded.
+- **With `ADS_ENABLED=false`, UMP is never consulted at all.** No network call,
+  no form, no possibility of interfering with the game.
+
+`getPrivacyOptionsRequirementStatus()` drives a **Privacy choices** row in
+Settings, shown only in the regions that require a permanent way back into the
+consent form. Tapping it calls `ConsentForm.showPrivacyOptionsForm()`, then
+re-reads the gate and tells the ad service — so revoking consent stops ads
+immediately rather than at the next launch, and granting it starts them.
+
+The UMP failure paths are covered by `test/monetisation/consent_test.dart`,
+which fakes the platform gateway; the Settings row is covered by
+`test/widget/settings_screen_test.dart`.
 
 ---
 

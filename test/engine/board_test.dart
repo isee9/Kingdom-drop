@@ -93,14 +93,17 @@ void main() {
       expect(board.canPlace(long, 0, -1), isFalse);
     });
 
-    test('place() throws rather than corrupting the board on an illegal move', () {
-      final Board board = Board();
-      final Shape square = ShapeCatalog.byId('square2');
-      board.place(square, 0, 0, 0);
+    test(
+      'place() throws rather than corrupting the board on an illegal move',
+      () {
+        final Board board = Board();
+        final Shape square = ShapeCatalog.byId('square2');
+        board.place(square, 0, 0, 0);
 
-      expect(() => board.place(square, 0, 0, 1), throwsStateError);
-      expect(board.filledCount, 4);
-    });
+        expect(() => board.place(square, 0, 0, 1), throwsStateError);
+        expect(board.filledCount, 4);
+      },
+    );
 
     test('hasAnyPlacement is false only when nothing fits', () {
       final Board full = Board.fromPattern(const <String>[
@@ -213,16 +216,19 @@ void main() {
       expect(board.findCompleteGroups(), isEmpty);
     });
 
-    test('a full row through the cross clears even though it spans regions', () {
-      final Board board = Board();
-      for (int c = 0; c < 7; c++) {
-        board.setCell(3, c, 2);
-      }
-      final List<ClearGroup> groups = board.findCompleteGroups();
-      expect(groups.length, 1);
-      expect(groups.single.type, ClearType.row);
-      expect(groups.single.index, 3);
-    });
+    test(
+      'a full row through the cross clears even though it spans regions',
+      () {
+        final Board board = Board();
+        for (int c = 0; c < 7; c++) {
+          board.setCell(3, c, 2);
+        }
+        final List<ClearGroup> groups = board.findCompleteGroups();
+        expect(groups.length, 1);
+        expect(groups.single.type, ClearType.row);
+        expect(groups.single.index, 3);
+      },
+    );
 
     test('a row and a column clearing together report as two groups', () {
       final Board board = Board();
@@ -235,10 +241,10 @@ void main() {
 
       final List<ClearGroup> groups = board.findCompleteGroups();
       expect(groups.length, 2);
-      expect(
-        groups.map((ClearGroup g) => g.type).toSet(),
-        <ClearType>{ClearType.row, ClearType.column},
-      );
+      expect(groups.map((ClearGroup g) => g.type).toSet(), <ClearType>{
+        ClearType.row,
+        ClearType.column,
+      });
 
       // The shared cell (2,5) must only be counted once in the cleared set.
       final Set<Cell> cleared = board.applyClears(groups);
@@ -258,15 +264,16 @@ void main() {
       ]);
 
       final List<ClearGroup> groups = board.findCompleteGroups();
-      final Set<ClearType> types = groups
-          .map((ClearGroup g) => g.type)
-          .toSet();
+      final Set<ClearType> types = groups.map((ClearGroup g) => g.type).toSet();
 
-      expect(types, containsAll(<ClearType>[
-        ClearType.row,
-        ClearType.column,
-        ClearType.region,
-      ]));
+      expect(
+        types,
+        containsAll(<ClearType>[
+          ClearType.row,
+          ClearType.column,
+          ClearType.region,
+        ]),
+      );
       expect(groups.length, 3);
     });
 

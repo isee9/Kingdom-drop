@@ -127,7 +127,9 @@ void main() {
         ShapeCatalog.byId('dot'),
       ]);
 
-      final List<int> ids = engine.tray.map((dynamic p) => p.id as int).toList();
+      final List<int> ids = engine.tray
+          .map((dynamic p) => p.id as int)
+          .toList();
       expect(engine.place(ids[0], 0, 0).accepted, isTrue);
 
       final int before = engine.board.filledCount;
@@ -147,7 +149,9 @@ void main() {
         ShapeCatalog.byId('dot'),
         ShapeCatalog.byId('dot'),
       ]);
-      final List<int> ids = engine.tray.map((dynamic p) => p.id as int).toList();
+      final List<int> ids = engine.tray
+          .map((dynamic p) => p.id as int)
+          .toList();
 
       expect(engine.place(ids[0], 0, 0).trayRefilled, isFalse);
       expect(engine.availablePieces.length, 2);
@@ -277,8 +281,11 @@ void main() {
       paintBoard(engine, kJammedBoard);
       engine.debugSetTray(<Shape>[ShapeCatalog.byId('square2')]);
 
-      expect(engine.board.findCompleteGroups(), isEmpty,
-          reason: 'fixture must be a real jam, not an unresolved clear');
+      expect(
+        engine.board.findCompleteGroups(),
+        isEmpty,
+        reason: 'fixture must be a real jam, not an unresolved clear',
+      );
       expect(engine.state, GameState.noMoves);
       expect(engine.hasAvailableMove, isFalse);
     });
@@ -502,8 +509,10 @@ void main() {
           final List<Cell> spots = engine.placementsFor(piece.id as int);
           if (spots.isEmpty) continue;
           final Cell spot = spots.first;
-          expect(engine.place(piece.id as int, spot.row, spot.col).accepted,
-              isTrue);
+          expect(
+            engine.place(piece.id as int, spot.row, spot.col).accepted,
+            isTrue,
+          );
           placed = true;
           break;
         }
@@ -520,28 +529,30 @@ void main() {
       }
     });
 
-    test('the board never holds a completed group after a placement settles',
-        () {
-      final GameEngine engine = GameEngine(random: Random(4321));
-      int guard = 0;
+    test(
+      'the board never holds a completed group after a placement settles',
+      () {
+        final GameEngine engine = GameEngine(random: Random(4321));
+        int guard = 0;
 
-      while (engine.state == GameState.playing && guard++ < 2000) {
-        final List<dynamic> available = engine.availablePieces.toList();
-        bool placed = false;
-        for (final dynamic piece in available) {
-          final List<Cell> spots = engine.placementsFor(piece.id as int);
-          if (spots.isEmpty) continue;
-          engine.place(piece.id as int, spots.last.row, spots.last.col);
-          expect(
-            engine.board.findCompleteGroups(),
-            isEmpty,
-            reason: 'clears must resolve immediately',
-          );
-          placed = true;
-          break;
+        while (engine.state == GameState.playing && guard++ < 2000) {
+          final List<dynamic> available = engine.availablePieces.toList();
+          bool placed = false;
+          for (final dynamic piece in available) {
+            final List<Cell> spots = engine.placementsFor(piece.id as int);
+            if (spots.isEmpty) continue;
+            engine.place(piece.id as int, spots.last.row, spots.last.col);
+            expect(
+              engine.board.findCompleteGroups(),
+              isEmpty,
+              reason: 'clears must resolve immediately',
+            );
+            placed = true;
+            break;
+          }
+          if (!placed) break;
         }
-        if (!placed) break;
-      }
-    });
+      },
+    );
   });
 }
