@@ -84,6 +84,42 @@ android {
     }
 }
 
+dependencies {
+    // ---------------------------------------------------------------------
+    // WorkManager — pinned to fix a release-only crash at process start.
+    // ---------------------------------------------------------------------
+    // Nothing in this app uses WorkManager directly. It arrives transitively:
+    // play-services-ads (via google_mobile_ads) schedules its offline ad-ping
+    // through a Worker, so androidx.work comes along with the ads SDK, and its
+    // WorkManagerInitializer runs from androidx.startup's InitializationProvider
+    // — a ContentProvider, so before Application.onCreate and long before
+    // Flutter reaches runApp().
+    //
+    // WorkManager's WorkDatabase is a Room database, and Room instantiates the
+    // generated WorkDatabase_Impl reflectively by name. R8 full mode (the
+    // default since AGP 8, and this project is on AGP 9) strips or renames a
+    // class nothing references statically, so the lookup fails and the
+    // initializer throws:
+    //
+    //     Unable to get provider androidx.startup.InitializationProvider
+    //     Caused by: Failed to create an instance of androidx.work.impl.WorkDatabase
+    //
+    // Release-only, because debug builds do not run R8 at all.
+    //
+    // The fix is a dependency one rather than a keep rule. Current Room ships
+    // consumer ProGuard rules that keep exactly what it reflects into
+    // (`-keep class * extends androidx.room.RoomDatabase { <init>(); }`); the
+    // older Room that the ads SDK's older WorkManager pulls in does not, or
+    // does so in a form R8 full mode no longer honours. Declaring a current
+    // WorkManager here makes Gradle resolve it — highest version wins — and
+    // brings the matching Room and its rules with it.
+    //
+    // Keep this until the ads SDK depends on a WorkManager new enough to make
+    // it redundant. Verify with:
+    //     ./gradlew :app:dependencies --configuration releaseRuntimeClasspath
+    implementation("androidx.work:work-runtime:2.11.2")
+}
+
 kotlin {
     compilerOptions {
         jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17

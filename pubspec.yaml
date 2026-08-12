@@ -3,8 +3,10 @@ description: "Kingdom Drop — Build. Clear. Conquer. An original block puzzle g
 publish_to: 'none'
 
 # version: <marketing version>+<build number>
-# Bump the build number for every store upload.
-version: 1.0.0+1
+# Bump the build number for EVERY store upload — Play rejects a versionCode it
+# has already seen, including for a build that crashed. +1 was the upload that
+# died in androidx.startup; this is its replacement.
+version: 1.0.0+2
 
 environment:
   sdk: ^3.12.2

@@ -573,6 +573,55 @@ review guidelines for any app selling non-consumables.
 
 ## Release builds
 
+> **Run the smoke test before every upload.**
+>
+> ```
+> powershell -ExecutionPolicy Bypass -File tool\release_smoke_test.ps1   # Windows
+> ./tool/release_smoke_test.sh                                            # macOS / Linux
+> ```
+>
+> It builds a release APK, installs it cold on a connected phone, launches it,
+> and fails if the app crashes, dies quietly, or never reaches `runApp()`.
+>
+> This exists because a signed build once crashed at process start while
+> `flutter test`, `flutter analyze` and every debug run were green — see
+> [Release-only crashes](#release-only-crashes). Nothing but starting a real
+> release build on real hardware can catch that class of bug.
+
+### Release-only crashes
+
+Release builds run R8; debug builds do not. That single difference is enough to
+make an app that works perfectly in development unlaunchable from the store,
+and the symptom is usually a crash in a `ContentProvider` before Flutter starts:
+
+```
+Unable to get provider androidx.startup.InitializationProvider
+Caused by: Failed to create an instance of androidx.work.impl.WorkDatabase
+```
+
+What happens: `play-services-ads` schedules its offline ad-ping through a
+WorkManager `Worker`, so `androidx.work` arrives transitively with the ads SDK
+and its `WorkManagerInitializer` runs from `androidx.startup`'s
+`InitializationProvider`. WorkManager's `WorkDatabase` is a Room database, and
+Room instantiates the generated `WorkDatabase_Impl` **reflectively by name**.
+Nothing references that class statically, so R8 full mode — the default since
+AGP 8, and this project is on AGP 9 — removes it.
+
+The fix is in `android/app/build.gradle.kts`: a current `androidx.work` is
+declared directly, so Gradle resolves it over the older one the ads SDK asks
+for and brings a Room whose consumer ProGuard rules keep what it reflects into.
+`proguard-rules.pro` repeats that one narrow rule as a safety net, and says so.
+
+The general lesson, for the next dependency that does this: **prefer fixing the
+dependency over adding keep rules.** A broad `-keep class some.package.** { *; }`
+silences the symptom, disables shrinking for that package, and hides the next
+occurrence. Check what is actually resolved first:
+
+```
+cd android && ./gradlew :app:dependencies --configuration releaseRuntimeClasspath
+```
+
+
 > **Not verified in this repository's build environment.** The Android SDK
 > repository host is unreachable from the sandbox this project was developed in,
 > and iOS builds require macOS and Xcode. The Gradle and Xcode configuration

@@ -172,17 +172,26 @@ If it succeeds you will find the file at
 `build/app/outputs/bundle/release/app-release.aab`. That single file is what you
 upload.
 
-**Test it on a real phone first.** An App Bundle cannot be installed directly,
-so build an APK too:
+**Test it on a real phone first — always.** A release build is not the same
+program as the one you have been running. It is shrunk and obfuscated by a tool
+called R8, which debug builds skip entirely, and that alone has already made
+this app crash on launch once while every test and every debug run stayed
+green. Nothing catches that except starting a real release build on a real
+phone.
+
+There is a script that does the whole check for you. Plug the phone in, then:
 
 ```
-flutter build apk --release
+powershell -ExecutionPolicy Bypass -File tool\release_smoke_test.ps1
 ```
 
-Copy `build/app/outputs/flutter-apk/app-release.apk` to your phone, tap it, and
-allow installing from unknown sources when asked. **Play a few rounds.** Check
-that sound works, that the shop opens, that closing and reopening the app keeps
-your progress. This is the last easy chance to find a problem.
+It builds the release APK, installs it fresh, launches it, and tells you plainly
+whether the app crashed, died quietly, or never reached its first screen. Run it
+**before every upload**.
+
+If it passes, **play a few rounds** by hand. Check that sound works, that the
+shop opens, and that closing and reopening the app keeps your progress. The
+script only proves the app starts, not that it is any good.
 
 ---
 
@@ -354,9 +363,9 @@ come back. If it does, billing is working.
   crashes appear on a particular phone model, that is where you will see it.
 - **Reply to reviews.** Early reviews carry a lot of weight.
 - **Every update needs a new build number.** Open `pubspec.yaml` and change
-  `version: 1.0.0+1` to `1.0.0+2`, then `+3`, and so on. Google rejects an
-  upload that reuses a number. The part before the `+` is what players see;
-  the part after it is just a counter.
+  `version: 1.0.0+2` to `+3`, then `+4`, and so on. Google rejects an upload
+  that reuses a number — including replacing a build that crashed. The part
+  before the `+` is what players see; the part after it is just a counter.
 
 ---
 
