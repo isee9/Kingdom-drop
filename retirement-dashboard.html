@@ -1,0 +1,606 @@
+<title>Retirement Projection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: two-column — a sticky "your plan" input panel on the left, results stacked on the right (headline figure, growth chart, three return-world cards). Dark-first. */
+:root {
+  --bg: #0c0f0d;
+  --bg-glow: rgba(74, 222, 128, 0.07);
+  --panel: #141917;
+  --panel-2: #1a201d;
+  --line: #262e2a;
+  --line-strong: #34403a;
+  --fg: #f2f5f3;
+  --muted: #9aa59f;
+  --faint: #6b756f;
+  --accent: #6ee07f;
+  --accent-strong: #4ade80;
+  --accent-ink: #0b1a10;
+  --accent-soft: rgba(110, 224, 127, 0.14);
+  --low: #e0a15e;
+  --high: #a8d88f;
+  --short: #f07a6a;
+  --short-soft: rgba(240, 122, 106, 0.14);
+  --font-display: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f3f6f3; --bg-glow: rgba(34, 160, 80, 0.08); --panel: #ffffff; --panel-2: #f6f9f6;
+    --line: #dfe6e0; --line-strong: #c8d3ca; --fg: #0f1a13; --muted: #55625a; --faint: #7f8a83;
+    --accent: #1f9d4c; --accent-strong: #22a855; --accent-ink: #ffffff; --accent-soft: rgba(31, 157, 76, 0.12);
+    --low: #c27728; --high: #6aa84f; --short: #c9412f; --short-soft: rgba(201, 65, 47, 0.1);
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #f3f6f3; --bg-glow: rgba(34, 160, 80, 0.08); --panel: #ffffff; --panel-2: #f6f9f6;
+  --line: #dfe6e0; --line-strong: #c8d3ca; --fg: #0f1a13; --muted: #55625a; --faint: #7f8a83;
+  --accent: #1f9d4c; --accent-strong: #22a855; --accent-ink: #ffffff; --accent-soft: rgba(31, 157, 76, 0.12);
+  --low: #c27728; --high: #6aa84f; --short: #c9412f; --short-soft: rgba(201, 65, 47, 0.1);
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: radial-gradient(1200px 600px at 75% -10%, var(--bg-glow), transparent 60%), var(--bg);
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1140px; margin: 0 auto; padding-inline: 20px; padding-block: 48px 64px; }
+.eyebrow {
+  font-family: var(--font-mono); font-size: 11.5px; font-weight: 600;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent);
+}
+h1 {
+  font-family: var(--font-display); font-weight: 800; letter-spacing: -0.035em;
+  font-size: clamp(32px, 5vw, 50px); line-height: 1.04; margin: 10px 0 14px;
+  max-width: 21ch; text-wrap: balance;
+}
+.lede { color: var(--muted); max-width: 64ch; margin: 0 0 36px; font-size: 16px; }
+.num { font-variant-numeric: tabular-nums; }
+
+.grid { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 880px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+
+.panel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 18px;
+}
+.plan { padding: 24px; display: flex; flex-direction: column; gap: 22px; position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+@media (max-width: 880px) { .plan { position: static; } }
+.plan h2 { margin: 4px 0 0; font-size: 18px; font-weight: 700; letter-spacing: -0.01em; }
+
+.field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.field-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+label, .label { font-size: 14px; font-weight: 500; color: var(--fg); }
+.label .sub { color: var(--muted); font-weight: 400; }
+.value-tag { font-family: var(--font-mono); color: var(--accent); font-weight: 600; font-size: 15px; }
+
+.input {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px;
+  padding: 0 14px; height: 46px; transition: border-color .15s, box-shadow .15s;
+}
+.input:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.input .prefix { color: var(--muted); }
+.input input {
+  flex: 1; min-width: 0; background: transparent; border: 0; outline: 0;
+  color: var(--fg); font: inherit; font-size: 16px; font-variant-numeric: tabular-nums;
+}
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: end; }
+
+input[type="range"] {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; margin: 0;
+  --pct: 50%;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 5px; border-radius: 99px;
+  background: linear-gradient(to right, var(--accent) var(--pct), var(--line-strong) var(--pct));
+}
+input[type="range"]::-moz-range-track { height: 5px; border-radius: 99px; background: var(--line-strong); }
+input[type="range"]::-moz-range-progress { height: 5px; border-radius: 99px; background: var(--accent); }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--fg); border: 3px solid var(--panel); box-shadow: 0 0 0 1px var(--line-strong);
+  margin-top: -5.5px;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 12px; height: 12px; border-radius: 50%; background: var(--fg); border: 3px solid var(--panel);
+}
+input[type="range"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+.range-ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--faint); font-variant-numeric: tabular-nums; }
+
+.seg {
+  display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px;
+  background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px; padding: 4px;
+}
+.seg button {
+  font: inherit; color: var(--muted); background: transparent; border: 0; border-radius: 10px;
+  padding: 8px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 1px;
+  transition: background .15s, color .15s;
+}
+.seg button .t { font-size: 14px; font-weight: 500; }
+.seg button .s { font-size: 12px; opacity: .8; }
+.seg button:hover { color: var(--fg); }
+.seg button[aria-pressed="true"] {
+  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+  color: var(--accent-ink); box-shadow: 0 6px 18px -8px var(--accent);
+}
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.wr-card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; display: flex; flex-direction: column; gap: 8px; }
+.wr-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.wr-title strong { font-weight: 600; }
+.wr-title .rate { color: var(--muted); font-size: 14px; }
+.pill {
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  padding: 2px 8px; border-radius: 99px; border: 1px solid var(--accent); color: var(--accent); background: var(--accent-soft);
+}
+.pill.short { border-color: var(--short); color: var(--short); background: var(--short-soft); }
+.wr-desc { margin: 0; font-size: 13px; color: var(--muted); }
+.link-btn {
+  align-self: flex-start; font: inherit; font-size: 13px; font-weight: 600; color: var(--accent);
+  background: none; border: 0; padding: 2px 0; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+}
+.link-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.wr-options { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.wr-opt {
+  display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; text-align: left; font: inherit; color: var(--fg);
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; cursor: pointer;
+}
+.wr-opt .n { font-weight: 600; font-size: 13.5px; }
+.wr-opt .r { font-family: var(--font-mono); font-size: 13px; color: var(--muted); }
+.wr-opt .d { grid-column: 1 / -1; font-size: 12px; color: var(--muted); }
+.wr-opt[aria-pressed="true"] { border-color: var(--accent); background: var(--accent-soft); }
+.wr-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.results { display: flex; flex-direction: column; gap: 24px; min-width: 0; }
+
+.hero {
+  padding: 28px 32px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px 32px;
+  position: relative; overflow: hidden;
+}
+.hero::after {
+  content: ""; position: absolute; right: -80px; top: 10%; width: 360px; height: 360px; border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-soft), transparent 65%); pointer-events: none;
+}
+.hero-main { display: flex; flex-direction: column; justify-content: center; gap: 2px; min-width: 0; }
+.hero-main .cap { color: var(--muted); font-size: 14.5px; }
+.big {
+  font-family: var(--font-display); font-weight: 800; letter-spacing: -0.045em; line-height: 1;
+  font-size: clamp(52px, 8vw, 80px); color: var(--accent); font-variant-numeric: tabular-nums;
+}
+.big .per { font-size: .36em; font-weight: 500; color: var(--muted); letter-spacing: -0.01em; margin-left: 2px; }
+.hero-side {
+  border-left: 1px solid var(--line); padding-left: 26px; display: flex; flex-direction: column; gap: 16px;
+  position: relative; z-index: 1; min-width: 210px;
+}
+.kv .k { font-family: var(--font-mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.kv .v { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.kv .s { font-size: 12.5px; color: var(--muted); }
+.hero-foot {
+  grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 16px; color: var(--muted); font-size: 14px;
+  display: flex; flex-wrap: wrap; gap: 6px 22px; position: relative; z-index: 1;
+}
+.hero-foot b { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+@media (max-width: 620px) {
+  .hero { grid-template-columns: minmax(0, 1fr); padding: 22px; }
+  .hero-side { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); padding-top: 18px; min-width: 0; }
+}
+
+.chart-card { padding: 22px 24px 18px; }
+.chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.chart-head h3 { margin: 0; font-size: 16px; font-weight: 600; }
+.chart-head h3 em { font-style: normal; color: var(--accent); }
+.chart-head .range { color: var(--muted); font-size: 13px; }
+.chart-box { position: relative; margin-top: 10px; }
+#chart { width: 100%; height: auto; display: block; overflow: visible; }
+#chart text { font-family: var(--font-body); font-size: 11px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.legend { display: flex; justify-content: center; gap: 18px; margin-top: 6px; flex-wrap: wrap; }
+.legend button {
+  font: inherit; font-size: 12.5px; color: var(--muted); background: none; border: 0; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 6px;
+}
+.legend button[aria-pressed="false"] { opacity: .4; }
+.legend button:focus-visible { outline: 2px solid var(--accent); }
+.legend .sw { width: 16px; height: 2px; border-radius: 2px; position: relative; }
+.legend .sw::after { content: ""; position: absolute; left: 50%; top: 50%; width: 6px; height: 6px; border-radius: 50%; transform: translate(-50%, -50%); border: 1.5px solid currentColor; background: var(--panel); }
+.tip {
+  position: absolute; pointer-events: none; background: var(--panel-2); border: 1px solid var(--line-strong);
+  border-radius: 10px; padding: 8px 10px; font-size: 12.5px; min-width: 150px; box-shadow: 0 10px 30px -10px rgba(0,0,0,.5);
+  transform: translate(-50%, calc(-100% - 12px));
+}
+.tip .ta { font-weight: 600; margin-bottom: 4px; }
+.tip .tr { display: flex; justify-content: space-between; gap: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.tip .tr b { color: var(--fg); font-weight: 600; }
+
+.worlds h3 { margin: 0 0 4px; font-size: 16px; font-weight: 600; }
+.worlds p.sub { margin: 0 0 14px; color: var(--muted); font-size: 14px; max-width: 70ch; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 760px) { .cards { grid-template-columns: minmax(0, 1fr); } }
+.wcard { padding: 16px 18px; display: flex; flex-direction: column; gap: 4px; }
+.wcard.base { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-soft) inset; }
+.wcard-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+.wcard-top .g { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.wcard .cap { font-size: 13px; color: var(--muted); }
+.wcard .pot { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.wcard .delta { font-size: 13px; font-variant-numeric: tabular-nums; }
+.wcard .delta.up { color: var(--accent); }
+.wcard .delta.down { color: var(--short); }
+.wcard .delta.eq { color: var(--muted); }
+.wcard hr { border: 0; border-top: 1px solid var(--line); margin: 10px 0 6px; width: 100%; }
+.wcard .inc { font-size: 13px; color: var(--muted); }
+.wcard .inc b { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.note { color: var(--faint); font-size: 12.5px; margin-top: 28px; max-width: 80ch; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <div class="eyebrow">Retirement projection</div>
+  <h1>What you need, and what to save each month.</h1>
+  <p class="lede">Enter the income you'd want if you retired today. We inflate it to your retirement year, size the pot with your chosen withdrawal strategy, then work out the monthly saving to get there.</p>
+
+  <div class="grid">
+    <aside class="panel plan" aria-label="Your plan">
+      <div>
+        <div class="eyebrow">Retirement projection</div>
+        <h2>Your plan</h2>
+      </div>
+
+      <div class="field">
+        <label for="income">Desired annual income, in today's money</label>
+        <div class="input"><span class="prefix">£</span><input id="income" type="text" inputmode="numeric" value="24,000" autocomplete="off"></div>
+      </div>
+
+      <div class="row2">
+        <div class="field">
+          <label for="age">Current age</label>
+          <div class="input"><input id="age" type="text" inputmode="numeric" value="30" autocomplete="off"></div>
+        </div>
+        <div class="field">
+          <div class="field-head"><label for="retire">Retirement age</label><span class="value-tag num" id="retireVal">57</span></div>
+          <input id="retire" type="range" min="31" max="80" step="1" value="57">
+          <div class="range-ends"><span id="retireMin">31</span><span>80</span></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="start">Starting fund value (what you have now)</label>
+        <div class="input"><span class="prefix">£</span><input id="start" type="text" inputmode="numeric" value="100,000" autocomplete="off"></div>
+      </div>
+
+      <div class="field">
+        <span class="label" id="growthLbl">Investment growth <span class="sub">· before retirement</span></span>
+        <div class="seg" role="group" aria-labelledby="growthLbl" id="growth">
+          <button type="button" data-v="0.03" aria-pressed="false"><span class="t">Low</span><span class="s">3%</span></button>
+          <button type="button" data-v="0.05" aria-pressed="true"><span class="t">Medium</span><span class="s">5%</span></button>
+          <button type="button" data-v="0.08" aria-pressed="false"><span class="t">High</span><span class="s">8%</span></button>
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="label">Assumed withdrawal rate <span class="sub">· in retirement</span></span>
+        <div class="wr-card">
+          <div class="wr-title"><strong id="wrName">Balanced</strong><span class="rate" id="wrRate">4%</span><span class="pill" id="wrDefault">Default</span></div>
+          <p class="wr-desc" id="wrDesc"></p>
+          <button type="button" class="link-btn" id="wrToggle" aria-expanded="false" aria-controls="wrOptions">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 7.2v4M8 4.9v.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            <span>Change withdrawal rate</span>
+          </button>
+          <div class="wr-options" id="wrOptions" hidden></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <span class="label" id="contribLbl">Monthly contributions</span>
+        <div class="seg" role="group" aria-labelledby="contribLbl" id="contrib">
+          <button type="button" data-v="level" aria-pressed="true"><span class="t">Level</span><span class="s">same each month</span></button>
+          <button type="button" data-v="rising" aria-pressed="false"><span class="t">Rise with inflation</span><span class="s">starts lower</span></button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-head"><label for="infl">Inflation assumption</label><span class="value-tag num" id="inflVal">2.5%</span></div>
+        <input id="infl" type="range" min="0" max="6" step="0.1" value="2.5">
+        <div class="range-ends"><span>0%</span><span>6%</span></div>
+      </div>
+    </aside>
+
+    <main class="results">
+      <section class="panel hero" aria-live="polite">
+        <div class="hero-main">
+          <span class="cap" id="saveCap">Save each month</span>
+          <div class="big"><span id="monthly">£0</span><span class="per">/mo</span></div>
+        </div>
+        <div class="hero-side">
+          <div class="kv">
+            <div class="k">Target pot at age <span id="tAge">57</span></div>
+            <div class="v" id="target">£0</div>
+            <div class="s"><span id="tRate">4%</span> withdrawal · future money</div>
+          </div>
+          <div class="kv">
+            <div class="k">Income then</div>
+            <div class="v"><span id="incThen">£0</span>/yr</div>
+            <div class="s">= <span id="incToday">£0</span> in today's money</div>
+          </div>
+        </div>
+        <div class="hero-foot">
+          <span>Total you'll contribute · <b id="totalContrib">£0</b></span>
+          <span id="growthShare"></span>
+        </div>
+      </section>
+
+      <section class="panel chart-card">
+        <div class="chart-head">
+          <h3>Where <em id="chartAmt">£0</em>/mo would land you</h3>
+          <span class="range" id="chartRange">Ages 30–57</span>
+        </div>
+        <div class="chart-box" id="chartBox">
+          <svg id="chart" viewBox="0 0 680 340" role="img" aria-label="Projected pot value by age under 3%, 5% and 8% growth"></svg>
+          <div class="tip" id="tip" hidden></div>
+        </div>
+        <div class="legend" id="legend"></div>
+      </section>
+
+      <section class="worlds">
+        <h3>Outcomes across return worlds</h3>
+        <p class="sub" id="worldsSub"></p>
+        <div class="cards" id="cards"></div>
+      </section>
+    </main>
+  </div>
+
+  <p class="note">Illustration only, not financial advice. Growth is compounded monthly at the nominal annual rate, contributions are paid at the end of each month, and fees and tax are ignored. Income in retirement is the pot multiplied by the withdrawal rate.</p>
+</div>
+
+<script>
+(() => {
+  const RATES = [
+    { v: 0.03, name: "Low", color: "var(--low)" },
+    { v: 0.05, name: "Medium", color: "var(--accent)" },
+    { v: 0.08, name: "High", color: "var(--high)" },
+  ];
+  const WR = [
+    { v: 0.03, name: "Cautious", desc: "Built to last 40+ years, even through a poor run of early returns. Needs the biggest pot." },
+    { v: 0.035, name: "Careful", desc: "A margin of safety below the 4% rule, suited to an early retirement or a long life expectancy." },
+    { v: 0.04, name: "Balanced", desc: "Based on the industry-standard 4% rule — a widely used benchmark for sustainable retirement income.", def: true },
+    { v: 0.05, name: "Bold", desc: "A smaller pot to aim for, with a higher risk of running short if markets disappoint." },
+  ];
+
+  const state = { income: 24000, age: 30, retire: 57, start: 100000, growth: 0.05, wr: 0.04, contrib: "level", infl: 0.025, hidden: new Set() };
+
+  const $ = id => document.getElementById(id);
+  const gbp = n => "£" + Math.round(n).toLocaleString("en-GB");
+  const pct = r => (Math.round(r * 1000) / 10).toString().replace(/\.0$/, "") + "%";
+  const short = n => {
+    if (n >= 1e6) return "£" + (n / 1e6).toFixed(n >= 1e7 ? 0 : 1).replace(/\.0$/, "") + "m";
+    if (n >= 1e3) return "£" + Math.round(n / 1e3) + "k";
+    return "£" + Math.round(n);
+  };
+  const parseNum = s => { const n = parseFloat(String(s).replace(/[^0-9.]/g, "")); return isFinite(n) ? n : 0; };
+
+  // Monthly path of pot values for a given annual growth rate and starting payment.
+  function path(rate, pmt0) {
+    const n = (state.retire - state.age) * 12, i = rate / 12, out = [state.start];
+    let pot = state.start;
+    for (let m = 1; m <= n; m++) {
+      const yearIdx = Math.floor((m - 1) / 12);
+      const pay = state.contrib === "rising" ? pmt0 * Math.pow(1 + state.infl, yearIdx) : pmt0;
+      pot = pot * (1 + i) + pay;
+      out.push(pot);
+    }
+    return out;
+  }
+
+  function compute() {
+    const years = state.retire - state.age;
+    const incThen = state.income * Math.pow(1 + state.infl, years);
+    const target = incThen / state.wr;
+    // Pot is linear in the first payment: pot = base + pmt0 * unit
+    const base = path(state.growth, 0).at(-1);
+    const unit = path(state.growth, 1).at(-1) - base;
+    const pmt0 = Math.max(0, (target - base) / unit);
+    const paths = RATES.map(r => ({ ...r, pts: path(r.v, pmt0) }));
+    let total = 0;
+    for (let y = 0; y < years; y++) total += 12 * (state.contrib === "rising" ? pmt0 * Math.pow(1 + state.infl, y) : pmt0);
+    return { years, incThen, target, pmt0, paths, total, alreadyThere: base >= target, base };
+  }
+
+  function render() {
+    const r = compute();
+    const deflator = Math.pow(1 + state.infl, r.years);
+
+    $("monthly").textContent = gbp(r.pmt0);
+    $("saveCap").textContent = r.alreadyThere ? "Your current fund already gets you there" : state.contrib === "rising" ? "Save each month, starting at" : "Save each month";
+    $("tAge").textContent = state.retire;
+    $("target").textContent = gbp(r.target);
+    $("tRate").textContent = pct(state.wr);
+    $("incThen").textContent = gbp(r.incThen);
+    $("incToday").textContent = gbp(state.income);
+    $("totalContrib").textContent = gbp(r.total);
+    const growthPart = Math.max(0, r.target - r.total - state.start);
+    $("growthShare").innerHTML = r.target > 0 ? `Investment growth does · <b>${gbp(growthPart)}</b>` : "";
+    $("chartAmt").textContent = gbp(r.pmt0);
+    $("chartRange").textContent = `Ages ${state.age}–${state.retire}`;
+
+    const gName = RATES.find(x => x.v === state.growth);
+    $("worldsSub").textContent = `Same savings plan, three return worlds. Only the ${pct(state.growth)} line is built to hit target. The others show your upside and shortfall risk.`;
+
+    // withdrawal card
+    const w = WR.find(x => x.v === state.wr);
+    $("wrName").textContent = w.name;
+    $("wrRate").textContent = pct(w.v);
+    $("wrDefault").hidden = !w.def;
+    $("wrDesc").textContent = w.desc;
+    $("wrOptions").innerHTML = WR.map(o => `<button type="button" class="wr-opt" data-v="${o.v}" aria-pressed="${o.v === state.wr}"><span class="n">${o.name}${o.def ? " · default" : ""}</span><span class="r">${pct(o.v)}</span><span class="d">${o.desc}</span></button>`).join("");
+
+    // cards
+    $("cards").innerHTML = r.paths.map(p => {
+      const end = p.pts.at(-1);
+      const diff = end - r.target;
+      const hits = diff >= -0.5;
+      const isBase = p.v === state.growth;
+      const dCls = Math.abs(diff) < 1 ? "eq" : diff > 0 ? "up" : "down";
+      const dTxt = Math.abs(diff) < 1 ? "Exactly on target" : (diff > 0 ? "+" : "−") + gbp(Math.abs(diff)) + (diff > 0 ? " above target" : " short of target");
+      return `<article class="panel wcard${isBase ? " base" : ""}">
+        <div class="wcard-top"><span class="g">${pct(p.v)} growth</span><span class="pill${hits ? "" : " short"}">${hits ? "Hits target" : "Short"}</span></div>
+        <span class="cap">Ending pot at age ${state.retire}</span>
+        <span class="pot">${gbp(end)}</span>
+        <span class="delta ${dCls}">${dTxt}</span>
+        <hr>
+        <span class="inc">Income at ${pct(state.wr)} · <b>${gbp(end * state.wr / deflator)}/yr</b> in today's money</span>
+      </article>`;
+    }).join("");
+
+    drawChart(r);
+    syncControls();
+  }
+
+  // ---------- chart ----------
+  const W = 680, H = 340, M = { l: 52, r: 18, t: 16, b: 34 };
+  let chartData = null;
+
+  function niceStep(max, count) {
+    const raw = max / count, mag = Math.pow(10, Math.floor(Math.log10(raw)));
+    const f = raw / mag;
+    return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * mag;
+  }
+
+  function drawChart(r) {
+    const svg = $("chart");
+    const visible = r.paths.filter(p => !state.hidden.has(p.v));
+    const maxV = Math.max(r.target, ...visible.map(p => Math.max(...p.pts)), 1);
+    const step = niceStep(maxV, 4);
+    const yMax = Math.ceil(maxV * 1.04 / step) * step;
+    const n = r.years * 12;
+    const x = m => M.l + (m / n) * (W - M.l - M.r);
+    const y = v => H - M.b - (v / yMax) * (H - M.t - M.b);
+    chartData = { r, x, y, n };
+
+    let s = "";
+    for (let v = 0; v <= yMax + 1e-6; v += step) {
+      s += `<line x1="${M.l}" x2="${W - M.r}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/>`;
+      s += `<text x="${M.l - 8}" y="${y(v) + 4}" text-anchor="end">${short(v)}</text>`;
+    }
+    const xStep = Math.max(1, Math.ceil(r.years / 5));
+    for (let yr = 0; yr <= r.years; yr += xStep) {
+      if (r.years - yr < xStep * 0.5 && yr !== 0) continue;
+      s += `<text x="${x(yr * 12)}" y="${H - M.b + 20}" text-anchor="middle">${state.age + yr}</text>`;
+    }
+    s += `<text x="${x(n)}" y="${H - M.b + 20}" text-anchor="middle">${state.retire}</text>`;
+
+    // target line
+    s += `<line x1="${M.l}" x2="${W - M.r}" y1="${y(r.target)}" y2="${y(r.target)}" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="4 4"/>`;
+    s += `<text x="${(M.l + W - M.r) / 2}" y="${y(r.target) - 7}" text-anchor="middle">target ${short(r.target)}</text>`;
+
+    const line = pts => pts.map((v, m) => `${m ? "L" : "M"}${x(m).toFixed(1)},${y(v).toFixed(1)}`).join("");
+    const order = [...visible].sort((a, b) => (a.v === state.growth) - (b.v === state.growth));
+    for (const p of order) {
+      const isBase = p.v === state.growth;
+      if (isBase) {
+        s += `<defs><linearGradient id="fillG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--accent)" stop-opacity=".22"/><stop offset="1" stop-color="var(--accent)" stop-opacity="0"/></linearGradient></defs>`;
+        s += `<path d="${line(p.pts)}L${x(n)},${y(0)}L${x(0)},${y(0)}Z" fill="url(#fillG)"/>`;
+      }
+      s += `<path d="${line(p.pts)}" fill="none" stroke="${p.color}" stroke-width="${isBase ? 3 : 1.5}" stroke-opacity="${isBase ? 1 : 0.85}" stroke-linecap="round" stroke-linejoin="round"/>`;
+      if (isBase) s += `<circle cx="${x(n)}" cy="${y(p.pts[n])}" r="4.5" fill="var(--accent)" stroke="var(--panel)" stroke-width="2"/>`;
+    }
+    s += `<line id="hoverLine" x1="0" x2="0" y1="${M.t}" y2="${H - M.b}" stroke="var(--line-strong)" stroke-width="1" visibility="hidden"/>`;
+    s += `<rect x="${M.l}" y="${M.t}" width="${W - M.l - M.r}" height="${H - M.t - M.b}" fill="transparent" id="hit"/>`;
+    svg.innerHTML = s;
+
+    $("legend").innerHTML = r.paths.map(p => `<button type="button" data-v="${p.v}" aria-pressed="${!state.hidden.has(p.v)}" style="color:${p.color}"><span class="sw" style="background:${p.color}"></span><span style="color:var(--muted)">${pct(p.v)}${p.v === state.growth ? " · plan" : ""}</span></button>`).join("");
+
+    const hit = $("hit");
+    hit.addEventListener("pointermove", onHover);
+    hit.addEventListener("pointerleave", () => { $("tip").hidden = true; $("hoverLine").setAttribute("visibility", "hidden"); });
+  }
+
+  function onHover(e) {
+    const { r, x, n } = chartData;
+    const svg = $("chart"), rect = svg.getBoundingClientRect();
+    const sx = (e.clientX - rect.left) * (W / rect.width);
+    const frac = Math.min(1, Math.max(0, (sx - M.l) / (W - M.l - M.r)));
+    const m = Math.round(frac * r.years) * 12;
+    const hl = $("hoverLine");
+    hl.setAttribute("x1", x(m)); hl.setAttribute("x2", x(m)); hl.setAttribute("visibility", "visible");
+    const tip = $("tip");
+    tip.innerHTML = `<div class="ta">Age ${state.age + m / 12}</div>` + r.paths.filter(p => !state.hidden.has(p.v)).sort((a, b) => b.v - a.v)
+      .map(p => `<div class="tr"><span>${pct(p.v)} growth</span><b>${gbp(p.pts[m])}</b></div>`).join("");
+    tip.hidden = false;
+    const px = (x(m) / W) * rect.width;
+    tip.style.left = Math.min(rect.width - 80, Math.max(80, px)) + "px";
+    tip.style.top = (M.t / H) * rect.height + 40 + "px";
+  }
+
+  // ---------- controls ----------
+  function setRangeFill(el) {
+    const p = (el.value - el.min) / (el.max - el.min) * 100;
+    el.style.setProperty("--pct", p + "%");
+  }
+  function syncControls() {
+    const ret = $("retire");
+    ret.min = state.age + 1; ret.value = state.retire;
+    $("retireMin").textContent = state.age + 1;
+    $("retireVal").textContent = state.retire;
+    $("inflVal").textContent = (state.infl * 100).toFixed(1) + "%";
+    setRangeFill(ret); setRangeFill($("infl"));
+    document.querySelectorAll("#growth button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.v === state.growth));
+    document.querySelectorAll("#contrib button").forEach(b => b.setAttribute("aria-pressed", b.dataset.v === state.contrib));
+  }
+
+  function bindMoney(id, key, min, max) {
+    const el = $(id);
+    el.addEventListener("input", () => {
+      const caret = el.value.length - el.selectionStart;
+      const n = Math.min(max, Math.max(min, parseNum(el.value)));
+      state[key] = n;
+      el.value = el.value.trim() === "" ? "" : Math.round(parseNum(el.value)).toLocaleString("en-GB");
+      const pos = Math.max(0, el.value.length - caret);
+      try { el.setSelectionRange(pos, pos); } catch (_) {}
+      render();
+    });
+    el.addEventListener("blur", () => { el.value = Math.round(state[key]).toLocaleString("en-GB"); });
+  }
+  bindMoney("income", "income", 0, 1e7);
+  bindMoney("start", "start", 0, 1e9);
+
+  $("age").addEventListener("input", e => {
+    const a = parseInt(e.target.value, 10);
+    if (!isFinite(a) || a < 16 || a > 79) return;
+    state.age = a;
+    if (state.retire <= a) state.retire = a + 1;
+    render();
+  });
+  $("age").addEventListener("blur", e => { e.target.value = state.age; });
+  $("retire").addEventListener("input", e => { state.retire = +e.target.value; render(); });
+  $("infl").addEventListener("input", e => { state.infl = +e.target.value / 100; render(); });
+  $("growth").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { state.growth = +b.dataset.v; render(); } });
+  $("contrib").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { state.contrib = b.dataset.v; render(); } });
+  $("wrToggle").addEventListener("click", () => {
+    const open = $("wrOptions").hidden;
+    $("wrOptions").hidden = !open;
+    $("wrToggle").setAttribute("aria-expanded", open);
+    $("wrToggle").querySelector("span").textContent = open ? "Hide options" : "Change withdrawal rate";
+  });
+  $("wrOptions").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { state.wr = +b.dataset.v; render(); } });
+  $("legend").addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    const v = +b.dataset.v;
+    state.hidden.has(v) ? state.hidden.delete(v) : state.hidden.add(v);
+    render();
+  });
+
+  render();
+})();
+</script>
